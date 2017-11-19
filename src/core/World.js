@@ -59,6 +59,7 @@ function World ( o ) {
 
     // The time between each step
     this.timeStep = o.timestep || 0.01666; // 1/60;
+    this.sleepTime = o.sleepTIme || 10*this.timeStep; // 1/60;
     this.timerate = this.timeStep * 1000;
     this.timer = null;
 
@@ -435,10 +436,10 @@ Object.assign( World.prototype, {
     /**
     * I will proceed only time step seconds time of World.
     */
-    step: function () {
+    step: function ( delta ) {
 
         var stat = this.isStat;
-
+	if( !delta ) delta = this.timeStep;
         if( stat ) this.performance.setTime( 0 );
 
         var body = this.rigidBodies;
@@ -542,7 +543,7 @@ Object.assign( World.prototype, {
         //   SOLVE ISLANDS
         //------------------------------------------------------
 
-        var invTimeStep = 1 / this.timeStep;
+        var invTimeStep = 1 / delta;//this.timeStep;
         var joint;
         var constraint;
 
@@ -568,18 +569,18 @@ Object.assign( World.prototype, {
 
             if( base.isLonely() ){// update single body
                 if( base.isDynamic ){
-                    base.linearVelocity.addScaledVector( this.gravity, this.timeStep );
+                    base.linearVelocity.addScaledVector( this.gravity, delta );
                     /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
                     base.linearVelocity.y+=this.gravity.y*this.timeStep;
                     base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
                 }
                 if( this.callSleep( base ) ) {
-                    base.sleepTime += this.timeStep;
-                    if( base.sleepTime > 0.5 ) base.sleep();
-                    else base.updatePosition( this.timeStep );
+                    base.sleepTime += delta;
+                    if( base.sleepTime > this.sleepTime ) base.sleep();
+                    else base.updatePosition( delta );
                 }else{
                     base.sleepTime = 0;
-                    base.updatePosition( this.timeStep );
+                    base.updatePosition( delta );
                 }
                 this.numIslands++;
                 continue;
@@ -637,7 +638,7 @@ Object.assign( World.prototype, {
             } while( stackCount != 0 );
 
             // update velocities
-            var gVel = new Vec3().addScaledVector( this.gravity, this.timeStep );
+            var gVel = new Vec3().addScaledVector( this.gravity, delta );
             /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;*/
@@ -671,7 +672,7 @@ Object.assign( World.prototype, {
             j = islandNumConstraints;
             while(j--){
             //for(j=0, l=islandNumConstraints; j<l; j++){
-                this.islandConstraints[j].preSolve( this.timeStep, invTimeStep );// pre-solve
+                this.islandConstraints[j].preSolve( delta, invTimeStep );// pre-solve
             }
             var k = this.numIterations;
             while(k--){
@@ -697,7 +698,7 @@ Object.assign( World.prototype, {
             //for(j=0, l=islandNumRigidBodies;j<l;j++){
                 body = this.islandRigidBodies[j];
                 if( this.callSleep( body ) ){
-                    body.sleepTime += this.timeStep;
+                    body.sleepTime += delta;
                     if( body.sleepTime < sleepTime ) sleepTime = body.sleepTime;
                 }else{
                     body.sleepTime = 0;
@@ -705,7 +706,7 @@ Object.assign( World.prototype, {
                     continue;
                 }
             }
-            if(sleepTime > 0.5){
+            if(sleepTime > this.sleepTime){
                 // sleep the island
                 j = islandNumRigidBodies;
                 while(j--){
@@ -718,7 +719,7 @@ Object.assign( World.prototype, {
                 j = islandNumRigidBodies;
                 while(j--){
                 //for(j=0, l=islandNumRigidBodies;j<l;j++){
-                    this.islandRigidBodies[j].updatePosition( this.timeStep );
+                    this.islandRigidBodies[j].updatePosition( delta );
                     this.islandRigidBodies[j] = null;// gc
                 }
             }

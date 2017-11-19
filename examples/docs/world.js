@@ -3,7 +3,7 @@ function demo() {
     cam ( 0, 20, 40 );
 
     world = new OIMO.World({ 
-        timestep: 1/60,
+        timestep: 1/90,
         iterations: 8,
         broadphase: 2,
         worldscale: 1,

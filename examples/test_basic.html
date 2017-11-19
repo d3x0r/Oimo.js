@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="css/demo.css">
 
 <script src="js/demo.js"></script>
-<script src="js/libs/three.min.js"></script>
+<script src="js/libs/three.js"></script>
 <script src="js/controls/OrbitControls.js"></script>
 <script src="../build/oimo.js"></script>
 
@@ -54,7 +54,7 @@
     var infos;
 
     init();
-    loop();
+    //update( 0 );
 
     function init() {
 
@@ -76,6 +76,7 @@
 
         renderer = new THREE.WebGLRenderer({ canvas:canvas, precision: "mediump", antialias:antialias });
         renderer.setSize( window.innerWidth, window.innerHeight );
+       	renderer.animate( update );
 
         var materialType = 'MeshBasicMaterial';
         
@@ -131,11 +132,20 @@
 
     }
 
-    function loop() {
-
-        updateOimoPhysics();
+	var _tick;
+	const step = 32;
+	var prior;
+    function update(tick) {
+	if( _tick ) {
+		var delta = ( tick - _tick )/ 4;
+		if( delta )  {
+        		updateOimoPhysics(delta/1000);
+		}
+	}
+	prior =Date.now();
+	_tick = tick;
         renderer.render( scene, camera );
-        requestAnimationFrame( loop );
+        //requestAnimationFrame( loop );
 
     }
 
@@ -179,7 +189,7 @@
         // 2 : Sweep and prune , the default 
         // 3 : dynamic bounding volume tree
 
-        world = new OIMO.World({info:true, worldscale:100} );
+        world = new OIMO.World({timeStep:0.01666/4, info:true, worldscale:100} );
         populate(1);
         //setInterval(updateOimoPhysics, 1000/60);
 
@@ -243,10 +253,10 @@
         }
     }
 
-    function updateOimoPhysics() {
+    function updateOimoPhysics(delta) {
         if(world==null) return;
 
-        world.step();
+        world.step( delta );
 
         var x, y, z, mesh, body, i = bodys.length;
 
