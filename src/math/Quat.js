@@ -40,6 +40,20 @@ Object.assign( Quat.prototype, {
 
     },
 
+    addAveragedTime: function( v, v2, t ){
+
+        var ax = (v.x+v2.x)/2, ay = (v.y+v2.y)/2, az = (v.z+v2.z)/2;
+        var qw = this.w, qx = this.x, qy = this.y, qz = this.z;
+        t *= 0.5;    
+        this.x += t * (  ax*qw + ay*qz - az*qy );
+        this.y += t * (  ay*qw + az*qx - ax*qz );
+        this.z += t * (  az*qw + ax*qy - ay*qx );
+        this.w += t * ( -ax*qx - ay*qy - az*qz );
+        this.normalize();
+        return this;
+
+    },
+
     /*mul: function( q1, q2 ){
 
         var ax = q1.x, ay = q1.y, az = q1.z, as = q1.w,

@@ -447,7 +447,8 @@ Object.assign( World.prototype, {
         while( body !== null ){
 
             body.addedToIsland = false;
-
+            body.initialLinearVelocity.copy( body.linearVelocity );
+            body.initialAngularVelocity.copy( body.angularVelocity );
             if( body.sleeping ) body.testWakeUp();
 
             body = body.next;

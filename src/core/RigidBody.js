@@ -60,8 +60,10 @@ function RigidBody ( Position, Rotation ) {
 
 
     // Is the translational velocity.
+    this.initialLinearVelocity = new Vec3();
     this.linearVelocity = new Vec3();
     // Is the angular velocity.
+    this.initialAngularVelocity = new Vec3();
     this.angularVelocity = new Vec3();
 
     //--------------------------------------------
@@ -375,9 +377,8 @@ Object.assign( RigidBody.prototype, {
                     this.controlRot = false;
 
                 }
-
-                this.position.addScaledVector(this.linearVelocity, timeStep);
-                this.orientation.addTime(this.angularVelocity, timeStep);
+                this.position.addAveragedScaledVector(this.linearVelocity, this.initialLinearVelocity, timeStep);
+                this.orientation.addAveragedTime(this.angularVelocity, this.initialAngularVelocity, timeStep);
 
                 this.updateMesh();
 

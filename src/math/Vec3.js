@@ -21,6 +21,9 @@ Object.assign( Vec3.prototype, {
 
     },
 
+    map: function(cb) {
+        return [cb(this.x),cb(this.y),cb(this.z)];
+    },
     add: function ( a, b ) {
 
         if ( b !== undefined ) return this.addVectors( a, b );
@@ -142,7 +145,15 @@ Object.assign( Vec3.prototype, {
         return this;
 
     },
+    addAveragedScaledVector: function ( v, v2, s ) {
 
+        this.x += ( v2.x + v.x ) / 2 * s;
+        this.y += ( v2.y + v.y ) / 2 * s;
+        this.z += ( v2.z + v.z ) / 2 * s;
+
+        return this;
+
+    },
     subScaledVector: function ( v, s ) {
 
         this.x -= v.x * s;
