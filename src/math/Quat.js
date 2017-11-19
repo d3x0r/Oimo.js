@@ -42,9 +42,9 @@ Object.assign( Quat.prototype, {
 
     addAveragedTime: function( v, v2, t ){
 
-        var ax = (v.x+v2.x)/2, ay = (v.y+v2.y)/2, az = (v.z+v2.z)/2;
+        var ax = (v.x+v2.x) * 0.5, ay = (v.y+v2.y) * 0.5, az = (v.z+v2.z) * 0.5;
         var qw = this.w, qx = this.x, qy = this.y, qz = this.z;
-        t *= 0.5;    
+        t *= 0.5;
         this.x += t * (  ax*qw + ay*qz - az*qy );
         this.y += t * (  ay*qw + az*qx - ax*qz );
         this.z += t * (  az*qw + ax*qy - ay*qx );

@@ -147,9 +147,9 @@ Object.assign( Vec3.prototype, {
     },
     addAveragedScaledVector: function ( v, v2, s ) {
 
-        this.x += ( v2.x + v.x ) / 2 * s;
-        this.y += ( v2.y + v.y ) / 2 * s;
-        this.z += ( v2.z + v.z ) / 2 * s;
+        this.x += ( v2.x + v.x ) * 0.5 * s;
+        this.y += ( v2.y + v.y ) * 0.5 * s;
+        this.z += ( v2.z + v.z ) * 0.5 * s;
 
         return this;
 
