@@ -61,9 +61,11 @@ function RigidBody ( Position, Rotation ) {
 
     // Is the translational velocity.
     this.initialLinearVelocity = new Vec3();
+    this.continuousLinearVelocity = new Vec3();
     this.linearVelocity = new Vec3();
     // Is the angular velocity.
     this.initialAngularVelocity = new Vec3();
+    this.continuousAngularVelocity = new Vec3();
     this.angularVelocity = new Vec3();
 
     //--------------------------------------------
@@ -300,7 +302,9 @@ Object.assign( RigidBody.prototype, {
         if( !this.allowSleep || this.sleeping ) return;
 
         this.linearVelocity.set(0,0,0);
+        this.continuousLinearVelocity.set(0,0,0);
         this.angularVelocity.set(0,0,0);
+        this.continuousAngularVelocity.set(0,0,0);
         this.sleepPosition.copy( this.position );
         this.sleepOrientation.copy( this.orientation );
 
@@ -358,7 +362,7 @@ Object.assign( RigidBody.prototype, {
             case BODY_DYNAMIC:
 
                 if( this.isKinematic ){
-
+                    console.log( "kinematic" );
                     this.linearVelocity.set(0,0,0);
                     this.angularVelocity.set(0,0,0);
 
@@ -377,8 +381,10 @@ Object.assign( RigidBody.prototype, {
                     this.controlRot = false;
 
                 }
-                this.position.addAveragedScaledVector(this.linearVelocity, this.initialLinearVelocity, timeStep);
-                this.orientation.addAveragedTime(this.angularVelocity, this.initialAngularVelocity, timeStep);
+                this.position.addScaledVector(this.linearVelocity, timeStep);
+                this.position.addAveragedScaledVector(this.continuousLinearVelocity, this.initialLinearVelocity, timeStep);
+                this.orientation.addTime(this.angularVelocity, timeStep);
+                this.orientation.addAveragedTime(this.continuousAngularVelocity, this.initialAngularVelocity, timeStep);
 
                 this.updateMesh();
 
@@ -429,6 +435,12 @@ Object.assign( RigidBody.prototype, {
         this.angularVelocity.add( rel );
     },
 
+    applyForce: function(position, force){
+        this.continuousLinearVelocity.addScaledVector(force, this.inverseMass);
+        var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
+        this.continousAngularVelocity.add( rel );
+    },
+
 
     //---------------------------------------------
     // SET DYNAMIQUE POSITION AND ROTATION
@@ -459,6 +471,8 @@ Object.assign( RigidBody.prototype, {
 
     resetPosition:function(x,y,z){
 
+        this.continuousLinearVelocity.set( 0, 0, 0 );
+        this.initialLinearVelocity.set( 0, 0, 0 );
         this.linearVelocity.set( 0, 0, 0 );
         this.angularVelocity.set( 0, 0, 0 );
         this.position.set( x, y, z ).multiplyScalar( this.invScale );

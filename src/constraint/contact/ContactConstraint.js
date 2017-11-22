@@ -20,6 +20,10 @@ function ContactConstraint ( manifold ){
     this.p2=null;
     this.lv1=null;
     this.lv2=null;
+    this.clv1=null;
+    this.clv2=null;
+    this.ilv1=null;
+    this.ilv2=null;
     this.av1=null;
     this.av2=null;
     this.i1=null;
@@ -61,8 +65,12 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
         this.p1=this.body1.position;
         this.p2=this.body2.position;
         this.lv1=this.body1.linearVelocity;
+        this.clv1=this.body1.continuousLinearVelocity;
+        this.ilv1=this.body1.initialLinearVelocity;
         this.av1=this.body1.angularVelocity;
         this.lv2=this.body2.linearVelocity;
+        this.clv2=this.body2.continuousLinearVelocity;
+        this.ilv2=this.body2.initialLinearVelocity;
         this.av2=this.body2.angularVelocity;
         this.i1=this.body1.inverseInertia;
         this.i2=this.body2.inverseInertia;
@@ -76,6 +84,10 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
         this.p2=null;
         this.lv1=null;
         this.lv2=null;
+        this.clv1=null;
+        this.clv2=null;
+        this.ilv1=null;
+        this.ilv2=null;
         this.av1=null;
         this.av2=null;
         this.i1=null;
@@ -113,9 +125,12 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             this.tmp.set(
 
-                ( this.lv2.x + this.tmpC2.x ) - ( this.lv1.x + this.tmpC1.x ),
-                ( this.lv2.y + this.tmpC2.y ) - ( this.lv1.y + this.tmpC1.y ),
-                ( this.lv2.z + this.tmpC2.z ) - ( this.lv1.z + this.tmpC1.z )
+                //( this.lv2.x + this.tmpC2.x ) - ( this.lv1.x + this.tmpC1.x ),
+                //( this.lv2.y + this.tmpC2.y ) - ( this.lv1.y + this.tmpC1.y ),
+                //( this.lv2.z + this.tmpC2.z ) - ( this.lv1.z + this.tmpC1.z )
+                ( this.clv2.x + this.lv2.x + this.tmpC2.x ) - ( this.clv1.x + this.lv1.x + this.tmpC1.x ),
+                ( this.clv2.y + this.lv2.y + this.tmpC2.y ) - ( this.clv1.y + this.lv1.y + this.tmpC1.y ),
+                ( this.clv2.z + this.lv2.z + this.tmpC2.z ) - ( this.clv1.z + this.lv1.z + this.tmpC1.z )
 
             );
 
@@ -226,7 +241,9 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
     solve: function(){
 
         this.tmplv1.copy( this.lv1 );
+	this.tmplv1.addEqual( this.clv1 );
         this.tmplv2.copy( this.lv2 );
+	this.tmplv2.addEqual( this.clv2 );
         this.tmpav1.copy( this.av1 );
         this.tmpav2.copy( this.av2 );
 
@@ -327,7 +344,13 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
         }
 
         this.lv1.copy( this.tmplv1 );
+	this.clv1.set( 0,0,0 );
+	this.ilv1.set( 0,0,0 );
+	//this.lv1.subEqual( this.clv1 );
         this.lv2.copy( this.tmplv2 );
+	this.clv2.set( 0,0,0 );
+	this.ilv2.set( 0,0,0 );
+	//this.lv2.subEqual( this.clv2 );
         this.av1.copy( this.tmpav1 );
         this.av2.copy( this.tmpav2 );
 

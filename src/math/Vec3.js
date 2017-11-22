@@ -8,6 +8,23 @@ function Vec3 ( x, y, z ) {
     
 }
 
+Vec3.clone = function( v ) {
+        var vec = pool.pop() || new Vec3();
+	vec.x = v.x;
+	vec.y = v.y;
+	vec.z = v.z;
+	return vec;
+}
+Vec3.cloneScale = function( v, s ) {
+        var vec = pool.pop();
+	vec.x = v.x * s;
+	vec.y = v.y * s;
+	vec.z = v.z * s;
+	return vec;
+}
+
+var pool = [];
+
 Object.assign( Vec3.prototype, {
 
     Vec3: true,
@@ -20,7 +37,9 @@ Object.assign( Vec3.prototype, {
         return this;
 
     },
-
+    delete() {
+        pool.push( this );
+    },
     map: function(cb) {
         return [cb(this.x),cb(this.y),cb(this.z)];
     },

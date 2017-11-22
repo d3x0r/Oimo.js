@@ -427,7 +427,10 @@ Object.assign( World.prototype, {
     callSleep: function( body ) {
 
         if( !body.allowSleep ) return false;
-        if( body.linearVelocity.lengthSq() > 0.04 ) return false;
+        var tmp = Vec3.clone( body.continuousLinearVelocity );
+        tmp.addEqual( body.linearVelocity );
+        if( tmp.lengthSq() > 0.04 ) return false;
+        tmp.delete();
         if( body.angularVelocity.lengthSq() > 0.25 ) return false;
         return true;
 
@@ -447,8 +450,12 @@ Object.assign( World.prototype, {
         while( body !== null ){
 
             body.addedToIsland = false;
-            body.initialLinearVelocity.copy( body.linearVelocity );
-            body.initialAngularVelocity.copy( body.angularVelocity );
+            body.initialLinearVelocity.copy( body.continuousLinearVelocity );
+            if( !body.sleeping ) {
+	            body.continuousLinearVelocity.addScaledVector( this.gravity, delta );
+	            //body.continuousLinearVelocity.addScaledVector( body.thrustForce, delta );
+            }
+            body.initialAngularVelocity.copy( body.continuousAngularVelocity );
             if( body.sleeping ) body.testWakeUp();
 
             body = body.next;
@@ -570,7 +577,7 @@ Object.assign( World.prototype, {
 
             if( base.isLonely() ){// update single body
                 if( base.isDynamic ){
-                    base.linearVelocity.addScaledVector( this.gravity, delta );
+                    //base.continuousLinearVelocity.addScaledVector( this.gravity, delta );
                     /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
                     base.linearVelocity.y+=this.gravity.y*this.timeStep;
                     base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
@@ -639,7 +646,7 @@ Object.assign( World.prototype, {
             } while( stackCount != 0 );
 
             // update velocities
-            var gVel = new Vec3().addScaledVector( this.gravity, delta );
+            //var gVel = Vec3.cloneScale( this.gravity, delta );
             /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;*/
@@ -648,12 +655,14 @@ Object.assign( World.prototype, {
             //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body = this.islandRigidBodies[j];
                 if(body.isDynamic){
-                    body.linearVelocity.addEqual(gVel);
+                    //body.linearVelocity.addEqual(gVel);
+                    //base.continuousLinearVelocity.addScaledVector( this.gravity, delta );
                     /*body.linearVelocity.x+=gx;
                     body.linearVelocity.y+=gy;
                     body.linearVelocity.z+=gz;*/
                 }
             }
+            //gvel.delete();
 
             // randomizing order
             if(this.enableRandomizer){
@@ -915,7 +924,10 @@ Object.assign( World.prototype, {
             max = o.max || 10;
             min = min * invScale;
             max = max * invScale;
-        }else{
+        }else if( type === "jointSlider" ){
+            min = o.min || -10;
+            max = o.max || 10;
+	}else{
             min = o.min || 57.29578;
             max = o.max || 0;
             min = min * _Math.degtorad;
@@ -965,7 +977,11 @@ Object.assign( World.prototype, {
                 if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
             break;
             case "jointPrisme": joint = new PrismaticJoint(jc, min, max); break;
-            case "jointSlide": joint = new SliderJoint(jc, min, max); break;
+            case "jointSlide": 
+		joint = new SliderJoint(jc, min, max); 
+                if(spring !== null) joint.translationalLimitMotor.setSpring( spring[0], spring[1] );// soften the joint ex: 100, 0.2
+                if(motor !== null) joint.translationalLimitMotor.setMotor( motor[0], motor[1] );
+		break;
             case "jointBall": joint = new BallAndSocketJoint(jc); break;
             case "jointWheel": joint = new WheelJoint(jc);
                 if(limit !== null) joint.rotationalLimitMotor1.setLimit( limit[0], limit[1] );

@@ -45,7 +45,7 @@ function SliderJoint( config, lowerTranslation, upperTranslation ){
     this.bin = new Vec3();
 
     // The limit and motor for the rotation
-    this.rotationalLimitMotor = new LimitMotor( this.nor, false );
+    this.rotationalLimitMotor = new LimitMotor( this.nor, true );
     this.r3 = new Rotational3Constraint( this, this.rotationalLimitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
 
     // The limit and motor for the translation.
