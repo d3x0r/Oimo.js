@@ -23,7 +23,7 @@ Tetra.prototype.calculateMassInfo = function( out ){
     // I guess you could calculate box mass and split it
     // in half for the tetra...
     this.aabb.setFromPoints(this.verts);
-    var p = this.aabb.elements;
+    var p = this.aabb.aabb_elements;
     var x = p[3] - p[0];
     var y = p[4] - p[1];
     var z = p[5] - p[2];

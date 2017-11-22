@@ -48,15 +48,15 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
 
         var p = proxy;
         if(p.isDynamic()){
-            this.axesD[0].addElements( p.min[0], p.max[0] );
-            this.axesD[1].addElements( p.min[1], p.max[1] );
-            this.axesD[2].addElements( p.min[2], p.max[2] );
+            this.axesD[0].addElements( p.min.e0, p.max.e0 );
+            this.axesD[1].addElements( p.min.e1, p.max.e1 );
+            this.axesD[2].addElements( p.min.e2, p.max.e2 );
             p.belongsTo = 1;
             this.numElementsD += 2;
         } else {
-            this.axesS[0].addElements( p.min[0], p.max[0] );
-            this.axesS[1].addElements( p.min[1], p.max[1] );
-            this.axesS[2].addElements( p.min[2], p.max[2] );
+            this.axesS[0].addElements( p.min.e0, p.max.e0 );
+            this.axesS[1].addElements( p.min.e1, p.max.e1 );
+            this.axesS[2].addElements( p.min.e2, p.max.e2 );
             p.belongsTo = 2;
             this.numElementsS += 2;
         }
@@ -69,28 +69,28 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
         if ( p.belongsTo == 0 ) return;
 
         /*else if ( p.belongsTo == 1 ) {
-            this.axesD[0].removeElements( p.min[0], p.max[0] );
-            this.axesD[1].removeElements( p.min[1], p.max[1] );
-            this.axesD[2].removeElements( p.min[2], p.max[2] );
+            this.axesD[0].removeElements( p.min.e0, p.max.e0 );
+            this.axesD[1].removeElements( p.min.e1, p.max.e1 );
+            this.axesD[2].removeElements( p.min.e2, p.max.e2 );
             this.numElementsD -= 2;
         } else if ( p.belongsTo == 2 ) {
-            this.axesS[0].removeElements( p.min[0], p.max[0] );
-            this.axesS[1].removeElements( p.min[1], p.max[1] );
-            this.axesS[2].removeElements( p.min[2], p.max[2] );
+            this.axesS[0].removeElements( p.min.e0, p.max.e0 );
+            this.axesS[1].removeElements( p.min.e1, p.max.e1 );
+            this.axesS[2].removeElements( p.min.e2, p.max.e2 );
             this.numElementsS -= 2;
         }*/
 
         switch( p.belongsTo ){
             case 1:
-            this.axesD[0].removeElements( p.min[0], p.max[0] );
-            this.axesD[1].removeElements( p.min[1], p.max[1] );
-            this.axesD[2].removeElements( p.min[2], p.max[2] );
+            this.axesD[0].removeElements( p.min.e0, p.max.e0 );
+            this.axesD[1].removeElements( p.min.e1, p.max.e1 );
+            this.axesD[2].removeElements( p.min.e2, p.max.e2 );
             this.numElementsD -= 2;
             break;
             case 2:
-            this.axesS[0].removeElements( p.min[0], p.max[0] );
-            this.axesS[1].removeElements( p.min[1], p.max[1] );
-            this.axesS[2].removeElements( p.min[2], p.max[2] );
+            this.axesS[0].removeElements( p.min.e0, p.max.e0 );
+            this.axesS[1].removeElements( p.min.e1, p.max.e1 );
+            this.axesS[2].removeElements( p.min.e2, p.max.e2 );
             this.numElementsS -= 2;
             break;
         }
@@ -116,13 +116,13 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
         if( count1 <= count2 ){// select the best axis
             axis2 = this.axesS[this.index1];
             axis2.sort();
-            elementsD = axis1.elements;
-            elementsS = axis2.elements;
+            elementsD = axis1.sap_elements;
+            elementsS = axis2.sap_elements;
         }else{
             axis1 = this.axesS[this.index2];
             axis1.sort();
-            elementsD = axis2.elements;
-            elementsS = axis1.elements;
+            elementsD = axis2.sap_elements;
+            elementsS = axis1.sap_elements;
             this.index1 ^= this.index2;
             this.index2 ^= this.index1;
             this.index1 ^= this.index2;

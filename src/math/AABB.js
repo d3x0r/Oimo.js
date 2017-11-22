@@ -10,11 +10,11 @@ import { _Math } from './Math';
 
 function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
-    this.elements = new Float32Array( 6 );
-    var te = this.elements;
+    this.aabb_elements = { e0:0,e1:0,e2:0,e3:0,e4:0,e6:0}// new Float32Array( 6 );
+    var te = this.aabb_elements;
 
-    te[0] = minX || 0; te[1] = minY || 0; te[2] = minZ || 0;
-    te[3] = maxX || 0; te[4] = maxY || 0; te[5] = maxZ || 0;
+    te.e0 = minX || 0; te.e1 = minY || 0; te.e2 = minZ || 0;
+    te.e3 = maxX || 0; te.e4 = maxY || 0; te.e5 = maxZ || 0;
 
 };
 
@@ -24,50 +24,50 @@ Object.assign( AABB.prototype, {
 
 	set: function(minX, maxX, minY, maxY, minZ, maxZ){
 
-		var te = this.elements;
-		te[0] = minX;
-		te[3] = maxX;
-		te[1] = minY;
-		te[4] = maxY;
-		te[2] = minZ;
-		te[5] = maxZ;
+		var te = this.aabb_elements;
+		te.e0 = minX;
+		te.e3 = maxX;
+		te.e1 = minY;
+		te.e4 = maxY;
+		te.e2 = minZ;
+		te.e5 = maxZ;
 		return this;
 	},
 
 	intersectTest: function ( aabb ) {
 
-		var te = this.elements;
-		var ue = aabb.elements;
-		return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2] ? true : false;
+		var te = this.aabb_elements;
+		var ue = aabb.aabb_elements;
+		return te.e0 > ue.e3 || te.e1 > ue.e4 || te.e2 > ue.e5 || te.e3 < ue.e0 || te.e4 < ue.e1 || te.e5 < ue.e2 ? true : false;
 
 	},
 
 	intersectTestTwo: function ( aabb ) {
 
-		var te = this.elements;
-		var ue = aabb.elements;
-		return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5] ? true : false;
+		var te = this.aabb_elements;
+		var ue = aabb.aabb_elements;
+		return te.e0 < ue.e0 || te.e1 < ue.e1 || te.e2 < ue.e2 || te.e3 > ue.e3 || te.e4 > ue.e4 || te.e5 > ue.e5 ? true : false;
 
 	},
 
 	clone: function () {
 
-		return new this.constructor().fromArray( this.elements );
+		return new this.constructor().fromArray( this.aabb_elements );
 
 	},
 
 	copy: function ( aabb, margin ) {
 
 		var m = margin || 0;
-		var me = aabb.elements;
-		this.set( me[ 0 ]-m, me[ 3 ]+m, me[ 1 ]-m, me[ 4 ]+m, me[ 2 ]-m, me[ 5 ]+m );
+		var me = aabb.aabb_elements;
+		this.set( me.e0-m, me.e3+m, me.e1-m, me.e4+m, me.e2-m, me.e5+m );
 		return this;
 
 	},
 
 	fromArray: function ( array ) {
 
-		this.elements.set( array );
+		this.aabb_elements.set( array );
 		return this;
 
 	},
@@ -76,17 +76,17 @@ Object.assign( AABB.prototype, {
 
 	combine: function( aabb1, aabb2 ) {
 
-		var a = aabb1.elements;
-		var b = aabb2.elements;
-		var te = this.elements;
+		var a = aabb1.aabb_elements;
+		var b = aabb2.aabb_elements;
+		var te = this.aabb_elements;
 
-		te[0] = a[0] < b[0] ? a[0] : b[0];
-		te[1] = a[1] < b[1] ? a[1] : b[1];
-		te[2] = a[2] < b[2] ? a[2] : b[2];
+		te.e0 = a.e0 < b.e0 ? a.e0 : b.e0;
+		te.e1 = a.e1 < b.e1 ? a.e1 : b.e1;
+		te.e2 = a.e2 < b.e2 ? a.e2 : b.e2;
 
-		te[3] = a[3] > b[3] ? a[3] : b[3];
-		te[4] = a[4] > b[4] ? a[4] : b[4];
-		te[5] = a[5] > b[5] ? a[5] : b[5];
+		te.e3 = a.e3 > b.e3 ? a.e3 : b.e3;
+		te.e4 = a.e4 > b.e4 ? a.e4 : b.e4;
+		te.e5 = a.e5 > b.e5 ? a.e5 : b.e5;
 
 		return this;
 
@@ -97,10 +97,10 @@ Object.assign( AABB.prototype, {
 
 	surfaceArea: function () {
 
-		var te = this.elements;
-		var a = te[3] - te[0];
-		var h = te[4] - te[1];
-		var d = te[5] - te[2];
+		var te = this.aabb_elements;
+		var a = te.e3 - te.e0;
+		var h = te.e4 - te.e1;
+		var d = te.e5 - te.e2;
 		return 2 * (a * (h + d) + h * d );
 
 	},
@@ -110,8 +110,8 @@ Object.assign( AABB.prototype, {
 
 	intersectsWithPoint:function(x,y,z){
 
-		var te = this.elements;
-		return x>=te[0] && x<=te[3] && y>=te[1] && y<=te[4] && z>=te[2] && z<=te[5];
+		var te = this.aabb_elements;
+		return x>=te.e0 && x<=te.e3 && y>=te.e1 && y<=te.e4 && z>=te.e2 && z<=te.e5;
 
 	},
 
@@ -134,22 +134,22 @@ Object.assign( AABB.prototype, {
 	},
 
 	expandByPoint: function(pt){
-		var te = this.elements;
+		var te = this.aabb_elements;
 		this.set(
-			_Math.min(te[ 0 ], pt.x), _Math.min(te[ 1 ], pt.y), _Math.min(te[ 2 ], pt.z),
-			_Math.max(te[ 3 ], pt.x), _Math.max(te[ 4 ], pt.y), _Math.max(te[ 5 ], pt.z)
+			_Math.min(te.e0, pt.x), _Math.min(te.e1, pt.y), _Math.min(te.e2, pt.z),
+			_Math.max(te.e3, pt.x), _Math.max(te.e4, pt.y), _Math.max(te.e5, pt.z)
 		);
 	},
 
 	expandByScalar: function(s){
 
-		var te = this.elements;
-		te[0] += -s;
-		te[1] += -s;
-		te[2] += -s;
-		te[3] += s;
-		te[4] += s;
-		te[5] += s;
+		var te = this.aabb_elements;
+		te.e0 += -s;
+		te.e1 += -s;
+		te.e2 += -s;
+		te.e3 += s;
+		te.e4 += s;
+		te.e5 += s;
 	}
 
 });
