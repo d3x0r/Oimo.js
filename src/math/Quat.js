@@ -1,3 +1,4 @@
+"use strict";
 import { _Math } from './Math';
 import { Vec3 } from './Vec3';
 
@@ -266,7 +267,7 @@ Object.assign( Quat.prototype, {
 
     setFromMat33: function ( m ) {
 
-        var trace = m[0] + m[4] + m[8];
+        var trace = m.e0 + m.e4 + m.e8;
         var s;
 
         if ( trace > 0 ) {
@@ -274,17 +275,53 @@ Object.assign( Quat.prototype, {
             s = _Math.sqrt( trace + 1.0 );
             this.w = 0.5 / s;
             s = 0.5 / s;
-            this.x = ( m[5] - m[7] ) * s;
-            this.y = ( m[6] - m[2] ) * s;
-            this.z = ( m[1] - m[3] ) * s;
+            this.x = ( m.e5 - m.e7 ) * s;
+            this.y = ( m.e6 - m.e2 ) * s;
+            this.z = ( m.e1 - m.e3 ) * s;
 
         } else {
 
             var out = [];
             var i = 0;
-            if ( m[4] > m[0] ) i = 1;
-            if ( m[8] > m[i*3+i] ) i = 2;
-
+            if ( m.e4 > m.e0 ){ i = 1;
+                if ( m.e8 > m.e4 ){
+                    i = 2; // j=0, k=1
+                    s = _Math.sqrt( m.e8 - m.e0 - m.e4 + 1.0 );
+                    this.z = 0.5 * fRoot;
+                    s = 0.5 / fRoot;
+                    this.w = ( m.e1 - m.e1 ) * s;
+                    this.x = ( m.e2 + m.e6 ) * s;
+                    this.y = ( m.e5 + m.e7 ) * s;
+                }
+		else{
+                    // i=1 // j=2, k=0
+                    s = _Math.sqrt( m.e4 - m.e8 - m.e0 + 1.0 );
+                    this.y = 0.5 * fRoot;
+                    s = 0.5 / fRoot;
+                    this.w = ( m.e4 - m.e2 ) * s;
+                    this.z = ( m.e7 + m.e5 ) * s;
+                    this.x = ( m.e1 + m.e3 ) * s;
+		}
+            }else{
+	        if ( m.e8 > m.e0 ) {
+		    i = 2; // j=0, k=1
+                    s = _Math.sqrt( m.e8 - m.e0 - m.e4 + 1.0 );
+                    this.z = 0.5 * fRoot;
+                    s = 0.5 / fRoot;
+                    this.w = ( m.e1 - m.e1 ) * s;
+                    this.x = ( m.e2 + m.e6 ) * s;
+                    this.y = ( m.e5 + m.e7 ) * s;
+		}else {
+                    //i = 0; // j=1, k=2
+                    s = _Math.sqrt( m.e0 - m.e4 - m.e8 + 1.0 );
+                    this.x = 0.5 * fRoot;
+                    s = 0.5 / fRoot;
+                    this.w = ( m.e5 - m.e7 ) * s;
+                    this.y = ( m.e3 + m.e1 ) * s;
+                    this.z = ( m.e6 + m.e2 ) * s;
+	        }
+	    }
+/*
             var j = (i+1)%3;
             var k = (i+2)%3;
             
@@ -298,7 +335,7 @@ Object.assign( Quat.prototype, {
             this.x = out[1];
             this.y = out[2];
             this.z = out[3];
-
+*/
         }
 
         return this;

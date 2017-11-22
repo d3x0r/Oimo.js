@@ -1,3 +1,4 @@
+"use strict";
 import { _Math } from './Math';
 
 function Vec3 ( x, y, z ) {
@@ -24,6 +25,13 @@ Vec3.cloneScale = function( v, s ) {
 }
 
 var pool = [];
+
+Vec3.new = function() {
+    var v = pool.pop();
+    if( !v ) v = new Vec3();
+    else v.x = v.y = v.z = 0;
+    return v;
+}
 
 Object.assign( Vec3.prototype, {
 
@@ -305,24 +313,6 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    /*mul: function( b, a, m ){
-
-        return this.mulMat( m, a ).add( b );
-
-    },
-
-    mulMat: function( m, a ){
-
-        var e = m.elements;
-        var x = a.x, y = a.y, z = a.z;
-
-        this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
-        this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
-        this.z = e[ 6 ] * x + e[ 7 ] * y + e[ 8 ] * z;
-        return this;
-
-    },*/
-
     applyMatrix3: function ( m, transpose ) {
 
         //if( transpose ) m = m.clone().transpose();
@@ -331,15 +321,15 @@ Object.assign( Vec3.prototype, {
 
         if( transpose ){
             
-            this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
-            this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
-            this.z = e[ 6 ] * x + e[ 7 ] * y + e[ 8 ] * z;
+            this.x = e.e0 * x + e.e1 * y + e.e2 * z;
+            this.y = e.e3 * x + e.e4 * y + e.e5 * z;
+            this.z = e.e6 * x + e.e7 * y + e.e8 * z;
 
         } else {
       
-            this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
-            this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
-            this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+            this.x = e.e0 * x + e.e3 * y + e.e6 * z;
+            this.y = e.e1 * x + e.e4 * y + e.e7 * z;
+            this.z = e.e2 * x + e.e5 * y + e.e8 * z;
         }
 
         return this;

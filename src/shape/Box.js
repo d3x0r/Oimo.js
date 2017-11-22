@@ -23,8 +23,10 @@ function Box ( config, Width, Height, Depth ) {
     this.halfHeight = Height * 0.5;
     this.halfDepth = Depth * 0.5;
 
-    this.dimentions = new Float32Array( 18 );
-    this.elements = new Float32Array( 24 );
+    this.dimentions = [];//new Float32Array( 18 );
+    for( var n = 0; n < 18; n++ ) this.dimentions.push(0.0);
+    this.box_elements = [];//new Float32Array( 24 );
+    for( var n = 0; n < 24; n++ ) this.box_elements.push(0.0);
 
 };
 
@@ -50,29 +52,29 @@ Box.prototype = Object.assign( Object.create( Shape.prototype ), {
 		var te = this.rotation.elements;
 		var di = this.dimentions;
 		// Width
-		di[0] = te[0];
-		di[1] = te[3];
-		di[2] = te[6];
+		di[0] = te.e0;
+		di[1] = te.e3;
+		di[2] = te.e6;
 		// Height
-		di[3] = te[1];
-		di[4] = te[4];
-		di[5] = te[7];
+		di[3] = te.e1;
+		di[4] = te.e4;
+		di[5] = te.e7;
 		// Depth
-		di[6] = te[2];
-		di[7] = te[5];
-		di[8] = te[8];
+		di[6] = te.e2;
+		di[7] = te.e5;
+		di[8] = te.e8;
 		// half Width
-		di[9] = te[0] * this.halfWidth;
-		di[10] = te[3] * this.halfWidth;
-		di[11] = te[6] * this.halfWidth;
+		di[9] = te.e0 * this.halfWidth;
+		di[10] = te.e3 * this.halfWidth;
+		di[11] = te.e6 * this.halfWidth;
 		// half Height
-		di[12] = te[1] * this.halfHeight;
-		di[13] = te[4] * this.halfHeight;
-		di[14] = te[7] * this.halfHeight;
+		di[12] = te.e1 * this.halfHeight;
+		di[13] = te.e4 * this.halfHeight;
+		di[14] = te.e7 * this.halfHeight;
 		// half Depth
-		di[15] = te[2] * this.halfDepth;
-		di[16] = te[5] * this.halfDepth;
-		di[17] = te[8] * this.halfDepth;
+		di[15] = te.e2 * this.halfDepth;
+		di[16] = te.e5 * this.halfDepth;
+		di[17] = te.e8 * this.halfDepth;
 
 		var wx = di[9];
 		var wy = di[10];
@@ -88,7 +90,7 @@ Box.prototype = Object.assign( Object.create( Shape.prototype ), {
 		var y = this.position.y;
 		var z = this.position.z;
 
-		var v = this.elements;
+		var v = this.box_elements;
 		//v1
 		v[0] = x + wx + hx + dx;
 		v[1] = y + wy + hy + dy;
