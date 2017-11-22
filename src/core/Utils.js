@@ -14,7 +14,8 @@ function InfoDisplay(world){
 
     this.parent = world;
 
-    this.infos = new Float32Array( 13 );
+    this.infos = [];//new Float32Array( 13 );
+    for( var n = 0; n < 13; n++ ) this.infos.push(0.0);
     this.f = [0,0,0];
 
     this.times = [0,0,0,0];
@@ -38,6 +39,19 @@ function InfoDisplay(world){
     this.MaxSolvingTime = 0;
     this.MaxTotalTime = 0;
     this.MaxUpdateTime = 0;
+
+    this.MinBroadPhaseTime = 0;
+    this.MinNarrowPhaseTime = 0;
+    this.MinSolvingTime = 0;
+    this.MinTotalTime = 0;
+    this.MinUpdateTime = 0;
+
+    this.TotBroadPhaseTime = 0;
+    this.TotNarrowPhaseTime = 0;
+    this.TotSolvingTime = 0;
+    this.TotTotalTime = 0;
+    this.TotUpdateTime = 0;
+
 };
 
 Object.assign( InfoDisplay.prototype, {
@@ -54,6 +68,21 @@ Object.assign( InfoDisplay.prototype, {
         this.MaxTotalTime = 0;
         this.MaxUpdateTime = 0;
 
+        this.MinBroadPhaseTime = 100;
+        this.MinNarrowPhaseTime = 100;
+        this.MinSolvingTime = 100;
+        this.MinTotalTime = 100;
+        this.MinUpdateTime = 100;
+
+    },
+
+    resetAvg: function(){
+
+        this.TotBroadPhaseTime = 0;
+        this.TotNarrowPhaseTime = 0;
+        this.TotSolvingTime = 0;
+        this.TotTotalTime = 0;
+        this.TotUpdateTime = 0;
     },
 
     calcBroadPhase: function () {
@@ -77,21 +106,31 @@ Object.assign( InfoDisplay.prototype, {
         this.totalTime = this.times[ 2 ] - this.times[ 0 ];
         this.updateTime = this.totalTime - ( this.broadPhaseTime + this.narrowPhaseTime + this.solvingTime );
 
+
         if( this.tt === 100 ) this.resetMax();
 
-        if( this.tt > 100 ){
+        this.TotBroadPhaseTime += this.broadPhaseTime;
+        this.TotNarrowPhaseTime += this.narrowPhaseTime;
+        this.TotSolvingTime += this.solvingTime;
+        this.TotTotalTime += this.totalTime;
+        this.TotUpdateTime += this.updateTime;
+
             if( this.broadPhaseTime > this.MaxBroadPhaseTime ) this.MaxBroadPhaseTime = this.broadPhaseTime;
             if( this.narrowPhaseTime > this.MaxNarrowPhaseTime ) this.MaxNarrowPhaseTime = this.narrowPhaseTime;
             if( this.solvingTime > this.MaxSolvingTime ) this.MaxSolvingTime = this.solvingTime;
             if( this.totalTime > this.MaxTotalTime ) this.MaxTotalTime = this.totalTime;
             if( this.updateTime > this.MaxUpdateTime ) this.MaxUpdateTime = this.updateTime;
-        }
 
+            if( this.broadPhaseTime < this.MinBroadPhaseTime ) this.MinBroadPhaseTime = this.broadPhaseTime;
+            if( this.narrowPhaseTime <this.MinNarrowPhaseTime ) this.MinNarrowPhaseTime = this.narrowPhaseTime;
+            if( this.solvingTime < this.MinSolvingTime ) this.MinSolvingTime = this.solvingTime;
+            if( this.totalTime < this.MinTotalTime ) this.MinTotalTime = this.totalTime;
+            if( this.updateTime < this.MinUpdateTime ) this.MinUpdateTime = this.updateTime;
 
         this.upfps();
 
         this.tt ++;
-        if(this.tt > 500) this.tt = 0;
+        if(this.tt > 500) { this.resetAvg(); this.tt = 1; }
 
     },
 
@@ -112,11 +151,11 @@ Object.assign( InfoDisplay.prototype, {
             "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
             "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
             "Time in milliseconds<br><br>",
-            "broadphase &nbsp;"+ _Math.fix(this.broadPhaseTime) + " | " + _Math.fix(this.MaxBroadPhaseTime) +"<br>",
-            "narrowphase "+ _Math.fix(this.narrowPhaseTime)  + " | " + _Math.fix(this.MaxNarrowPhaseTime) + "<br>",
-            "solving &nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.solvingTime)+ " | " + _Math.fix(this.MaxSolvingTime) + "<br>",
-            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.totalTime) + " | " + _Math.fix(this.MaxTotalTime) + "<br>",
-            "updating &nbsp;&nbsp;&nbsp;"+ _Math.fix(this.updateTime) + " | " + _Math.fix(this.MaxUpdateTime) + "<br>"
+            "broadphase &nbsp;"                         + _Math.fix(this.broadPhaseTime)   + " | " + _Math.fix(this.MaxBroadPhaseTime)  + " | " + _Math.fix(this.MinBroadPhaseTime)  + " | " + _Math.fix(this.TotBroadPhaseTime/this.tt)+"<br>",
+            "narrowphase "                              + _Math.fix(this.narrowPhaseTime)  + " | " + _Math.fix(this.MaxNarrowPhaseTime) + " | " + _Math.fix(this.MinNarrowPhaseTime) + " | " + _Math.fix(this.TotNarrowPhaseTime/this.tt)+ "<br>",
+            "solving &nbsp;&nbsp;&nbsp;&nbsp;"          + _Math.fix(this.solvingTime)      + " | " + _Math.fix(this.MaxSolvingTime)     + " | " + _Math.fix(this.MinSolvingTime)     + " | " + _Math.fix(this.TotSolvingTime/this.tt) + "<br>",
+            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.totalTime)        + " | " + _Math.fix(this.MaxTotalTime)       + " | " + _Math.fix(this.MinTotalTime)       + " | " + _Math.fix(this.TotTotalTime/this.tt)+ "<br>",
+            "updating &nbsp;&nbsp;&nbsp;"               + _Math.fix(this.updateTime)       + " | " + _Math.fix(this.MaxUpdateTime)      + " | " + _Math.fix(this.MinUpdateTime)      + " | " + _Math.fix(this.TotUpdateTime/this.tt)+ "<br>"
         ].join("\n");
         return info;
     },
