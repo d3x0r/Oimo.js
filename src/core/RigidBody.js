@@ -385,7 +385,8 @@ Object.assign( RigidBody.prototype, {
                 this.position.addAveragedScaledVector(this.continuousLinearVelocity, this.initialLinearVelocity, timeStep);
                 this.orientation.addTime(this.angularVelocity, timeStep);
                 this.orientation.addAveragedTime(this.continuousAngularVelocity, this.initialAngularVelocity, timeStep);
-
+		if( this.position.y < 0 )
+			debugger;
                 this.updateMesh();
 
             break;

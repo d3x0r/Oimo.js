@@ -12,8 +12,8 @@ import { CylinderCylinderCollisionDetector } from '../collision/narrowphase/Cyli
 import { SphereBoxCollisionDetector } from '../collision/narrowphase/SphereBoxCollisionDetector';
 import { SphereCylinderCollisionDetector } from '../collision/narrowphase/SphereCylinderCollisionDetector';
 import { SphereSphereCollisionDetector } from '../collision/narrowphase/SphereSphereCollisionDetector';
-import { SpherePlaneCollisionDetector } from '../collision/narrowphase/SpherePlaneCollisionDetector_X';
-import { BoxPlaneCollisionDetector } from '../collision/narrowphase/BoxPlaneCollisionDetector_X';
+import { SpherePlaneCollisionDetector } from '../collision/narrowphase/SpherePlaneCollisionDetector';
+import { BoxPlaneCollisionDetector } from '../collision/narrowphase/BoxPlaneCollisionDetector';
 
 import { _Math } from '../math/Math';
 import { Mat33 } from '../math/Mat33';
