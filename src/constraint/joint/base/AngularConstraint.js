@@ -47,12 +47,12 @@ Object.assign( AngularConstraint.prototype, {
         this.ii2 = this.i2.clone();
 
         v = new Mat33().add(this.ii1, this.ii2).elements;
-        inv = 1/( v[0]*(v[4]*v[8]-v[7]*v[5])  +  v[3]*(v[7]*v[2]-v[1]*v[8])  +  v[6]*(v[1]*v[5]-v[4]*v[2]) );
-        this.dd = new Mat33().set(
-            v[4]*v[8]-v[5]*v[7], v[2]*v[7]-v[1]*v[8], v[1]*v[5]-v[2]*v[4],
-            v[5]*v[6]-v[3]*v[8], v[0]*v[8]-v[2]*v[6], v[2]*v[3]-v[0]*v[5],
-            v[3]*v[7]-v[4]*v[6], v[1]*v[6]-v[0]*v[7], v[0]*v[4]-v[1]*v[3]
-        ).multiplyScalar( inv );
+        inv = 1/( v.e0*(v.e4*v.e8-v.e7*v.e5)  +  v.e3*(v.e7*v.e2-v.e1*v.e8)  +  v.e6*(v.e1*v.e5-v.e4*v.e2) );
+        this.dd = Mat33.new().set(
+            (v.e4*v.e8-v.e5*v.e7)*inv, (v.e2*v.e7-v.e1*v.e8)*inv, (v.e1*v.e5-v.e2*v.e4)*inv,
+            (v.e5*v.e6-v.e3*v.e8)*inv, (v.e0*v.e8-v.e2*v.e6)*inv, (v.e2*v.e3-v.e0*v.e5)*inv,
+            (v.e3*v.e7-v.e4*v.e6)*inv, (v.e1*v.e6-v.e0*v.e7)*inv, (v.e0*v.e4-v.e1*v.e3)*inv
+        );//.multiplyScalar( inv );
         
         this.relativeOrientation.invert( this.b1.orientation ).multiply( this.targetOrientation ).multiply( this.b2.orientation );
 
@@ -78,8 +78,8 @@ Object.assign( AngularConstraint.prototype, {
     },
 
     solve: function () {
-
-        var r = this.a2.clone().sub( this.a1 ).sub( this.vel );
+        var tmp;
+        var r = ( tmp = this.a2.clone() ).sub( this.a1 ).sub( this.vel );
 
         this.rn0.copy( r ).applyMatrix3( this.dd, true );
         this.rn1.copy( this.rn0 ).applyMatrix3( this.ii1, true );
@@ -89,6 +89,10 @@ Object.assign( AngularConstraint.prototype, {
         this.a1.add( this.rn1 );
         this.a2.sub( this.rn2 );
 
+        this.ii1.delete();
+        this.ii2.delete();
+        tmp.delete();
+	this.dd.delete();
     }
 
 } );

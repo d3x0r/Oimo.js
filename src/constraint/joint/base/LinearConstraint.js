@@ -90,24 +90,24 @@ Object.assign( LinearConstraint.prototype, {
         var ii1 = this.ii1.elements;
         var ii2 = this.ii2.elements;
 
-        this.ax1x = this.r1z*ii1[1]+-this.r1y*ii1[2];
-        this.ax1y = this.r1z*ii1[4]+-this.r1y*ii1[5];
-        this.ax1z = this.r1z*ii1[7]+-this.r1y*ii1[8];
-        this.ay1x = -this.r1z*ii1[0]+this.r1x*ii1[2];
-        this.ay1y = -this.r1z*ii1[3]+this.r1x*ii1[5];
-        this.ay1z = -this.r1z*ii1[6]+this.r1x*ii1[8];
-        this.az1x = this.r1y*ii1[0]+-this.r1x*ii1[1];
-        this.az1y = this.r1y*ii1[3]+-this.r1x*ii1[4];
-        this.az1z = this.r1y*ii1[6]+-this.r1x*ii1[7];
-        this.ax2x = this.r2z*ii2[1]+-this.r2y*ii2[2];
-        this.ax2y = this.r2z*ii2[4]+-this.r2y*ii2[5];
-        this.ax2z = this.r2z*ii2[7]+-this.r2y*ii2[8];
-        this.ay2x = -this.r2z*ii2[0]+this.r2x*ii2[2];
-        this.ay2y = -this.r2z*ii2[3]+this.r2x*ii2[5];
-        this.ay2z = -this.r2z*ii2[6]+this.r2x*ii2[8];
-        this.az2x = this.r2y*ii2[0]+-this.r2x*ii2[1];
-        this.az2y = this.r2y*ii2[3]+-this.r2x*ii2[4];
-        this.az2z = this.r2y*ii2[6]+-this.r2x*ii2[7];
+        this.ax1x = this.r1z*ii1.e1+-this.r1y*ii1.e2;
+        this.ax1y = this.r1z*ii1.e4+-this.r1y*ii1.e5;
+        this.ax1z = this.r1z*ii1.e7+-this.r1y*ii1.e8;
+        this.ay1x = -this.r1z*ii1.e0+this.r1x*ii1.e2;
+        this.ay1y = -this.r1z*ii1.e3+this.r1x*ii1.e5;
+        this.ay1z = -this.r1z*ii1.e6+this.r1x*ii1.e8;
+        this.az1x = this.r1y*ii1.e0+-this.r1x*ii1.e1;
+        this.az1y = this.r1y*ii1.e3+-this.r1x*ii1.e4;
+        this.az1z = this.r1y*ii1.e6+-this.r1x*ii1.e7;
+        this.ax2x = this.r2z*ii2.e1+-this.r2y*ii2.e2;
+        this.ax2y = this.r2z*ii2.e4+-this.r2y*ii2.e5;
+        this.ax2z = this.r2z*ii2.e7+-this.r2y*ii2.e8;
+        this.ay2x = -this.r2z*ii2.e0+this.r2x*ii2.e2;
+        this.ay2y = -this.r2z*ii2.e3+this.r2x*ii2.e5;
+        this.ay2z = -this.r2z*ii2.e6+this.r2x*ii2.e8;
+        this.az2x = this.r2y*ii2.e0+-this.r2x*ii2.e1;
+        this.az2y = this.r2y*ii2.e3+-this.r2x*ii2.e4;
+        this.az2z = this.r2y*ii2.e6+-this.r2x*ii2.e7;
 
         // calculate point-to-point mass matrix
         // from impulse equation
@@ -131,31 +131,31 @@ Object.assign( LinearConstraint.prototype, {
         var kk = new Mat33().set( rxx, 0, 0,  0, rxx, 0,  0, 0, rxx );
         var k = kk.elements;
 
-        k[0] += ii1[4]*this.r1z*this.r1z-(ii1[7]+ii1[5])*this.r1y*this.r1z+ii1[8]*this.r1y*this.r1y;
-        k[1] += (ii1[6]*this.r1y+ii1[5]*this.r1x)*this.r1z-ii1[3]*this.r1z*this.r1z-ii1[8]*this.r1x*this.r1y;
-        k[2] += (ii1[3]*this.r1y-ii1[4]*this.r1x)*this.r1z-ii1[6]*this.r1y*this.r1y+ii1[7]*this.r1x*this.r1y;
-        k[3] += (ii1[2]*this.r1y+ii1[7]*this.r1x)*this.r1z-ii1[1]*this.r1z*this.r1z-ii1[8]*this.r1x*this.r1y;
-        k[4] += ii1[0]*this.r1z*this.r1z-(ii1[6]+ii1[2])*this.r1x*this.r1z+ii1[8]*this.r1x*this.r1x;
-        k[5] += (ii1[1]*this.r1x-ii1[0]*this.r1y)*this.r1z-ii1[7]*this.r1x*this.r1x+ii1[6]*this.r1x*this.r1y;
-        k[6] += (ii1[1]*this.r1y-ii1[4]*this.r1x)*this.r1z-ii1[2]*this.r1y*this.r1y+ii1[5]*this.r1x*this.r1y;
-        k[7] += (ii1[3]*this.r1x-ii1[0]*this.r1y)*this.r1z-ii1[5]*this.r1x*this.r1x+ii1[2]*this.r1x*this.r1y;
-        k[8] += ii1[0]*this.r1y*this.r1y-(ii1[3]+ii1[1])*this.r1x*this.r1y+ii1[4]*this.r1x*this.r1x;
+        k.e0 += ii1.e4*this.r1z*this.r1z-(ii1.e7+ii1.e5)*this.r1y*this.r1z+ii1.e8*this.r1y*this.r1y;
+        k.e1 += (ii1.e6*this.r1y+ii1.e5*this.r1x)*this.r1z-ii1.e3*this.r1z*this.r1z-ii1.e8*this.r1x*this.r1y;
+        k.e2 += (ii1.e3*this.r1y-ii1.e4*this.r1x)*this.r1z-ii1.e6*this.r1y*this.r1y+ii1.e7*this.r1x*this.r1y;
+        k.e3 += (ii1.e2*this.r1y+ii1.e7*this.r1x)*this.r1z-ii1.e1*this.r1z*this.r1z-ii1.e8*this.r1x*this.r1y;
+        k.e4 += ii1.e0*this.r1z*this.r1z-(ii1.e6+ii1.e2)*this.r1x*this.r1z+ii1.e8*this.r1x*this.r1x;
+        k.e5 += (ii1.e1*this.r1x-ii1.e0*this.r1y)*this.r1z-ii1.e7*this.r1x*this.r1x+ii1.e6*this.r1x*this.r1y;
+        k.e6 += (ii1.e1*this.r1y-ii1.e4*this.r1x)*this.r1z-ii1.e2*this.r1y*this.r1y+ii1.e5*this.r1x*this.r1y;
+        k.e7 += (ii1.e3*this.r1x-ii1.e0*this.r1y)*this.r1z-ii1.e5*this.r1x*this.r1x+ii1.e2*this.r1x*this.r1y;
+        k.e8 += ii1.e0*this.r1y*this.r1y-(ii1.e3+ii1.e1)*this.r1x*this.r1y+ii1.e4*this.r1x*this.r1x;
 
-        k[0] += ii2[4]*this.r2z*this.r2z-(ii2[7]+ii2[5])*this.r2y*this.r2z+ii2[8]*this.r2y*this.r2y;
-        k[1] += (ii2[6]*this.r2y+ii2[5]*this.r2x)*this.r2z-ii2[3]*this.r2z*this.r2z-ii2[8]*this.r2x*this.r2y;
-        k[2] += (ii2[3]*this.r2y-ii2[4]*this.r2x)*this.r2z-ii2[6]*this.r2y*this.r2y+ii2[7]*this.r2x*this.r2y;
-        k[3] += (ii2[2]*this.r2y+ii2[7]*this.r2x)*this.r2z-ii2[1]*this.r2z*this.r2z-ii2[8]*this.r2x*this.r2y;
-        k[4] += ii2[0]*this.r2z*this.r2z-(ii2[6]+ii2[2])*this.r2x*this.r2z+ii2[8]*this.r2x*this.r2x;
-        k[5] += (ii2[1]*this.r2x-ii2[0]*this.r2y)*this.r2z-ii2[7]*this.r2x*this.r2x+ii2[6]*this.r2x*this.r2y;
-        k[6] += (ii2[1]*this.r2y-ii2[4]*this.r2x)*this.r2z-ii2[2]*this.r2y*this.r2y+ii2[5]*this.r2x*this.r2y;
-        k[7] += (ii2[3]*this.r2x-ii2[0]*this.r2y)*this.r2z-ii2[5]*this.r2x*this.r2x+ii2[2]*this.r2x*this.r2y;
-        k[8] += ii2[0]*this.r2y*this.r2y-(ii2[3]+ii2[1])*this.r2x*this.r2y+ii2[4]*this.r2x*this.r2x;
+        k.e0 += ii2.e4*this.r2z*this.r2z-(ii2.e7+ii2.e5)*this.r2y*this.r2z+ii2.e8*this.r2y*this.r2y;
+        k.e1 += (ii2.e6*this.r2y+ii2.e5*this.r2x)*this.r2z-ii2.e3*this.r2z*this.r2z-ii2.e8*this.r2x*this.r2y;
+        k.e2 += (ii2.e3*this.r2y-ii2.e4*this.r2x)*this.r2z-ii2.e6*this.r2y*this.r2y+ii2.e7*this.r2x*this.r2y;
+        k.e3 += (ii2.e2*this.r2y+ii2.e7*this.r2x)*this.r2z-ii2.e1*this.r2z*this.r2z-ii2.e8*this.r2x*this.r2y;
+        k.e4 += ii2.e0*this.r2z*this.r2z-(ii2.e6+ii2.e2)*this.r2x*this.r2z+ii2.e8*this.r2x*this.r2x;
+        k.e5 += (ii2.e1*this.r2x-ii2.e0*this.r2y)*this.r2z-ii2.e7*this.r2x*this.r2x+ii2.e6*this.r2x*this.r2y;
+        k.e6 += (ii2.e1*this.r2y-ii2.e4*this.r2x)*this.r2z-ii2.e2*this.r2y*this.r2y+ii2.e5*this.r2x*this.r2y;
+        k.e7 += (ii2.e3*this.r2x-ii2.e0*this.r2y)*this.r2z-ii2.e5*this.r2x*this.r2x+ii2.e2*this.r2x*this.r2y;
+        k.e8 += ii2.e0*this.r2y*this.r2y-(ii2.e3+ii2.e1)*this.r2x*this.r2y+ii2.e4*this.r2x*this.r2x;
 
-        var inv=1/( k[0]*(k[4]*k[8]-k[7]*k[5]) + k[3]*(k[7]*k[2]-k[1]*k[8]) + k[6]*(k[1]*k[5]-k[4]*k[2]) );
+        var inv=1/( k.e0*(k.e4*k.e8-k.e7*k.e5) + k.e3*(k.e7*k.e2-k.e1*k.e8) + k.e6*(k.e1*k.e5-k.e4*k.e2) );
         this.dd = new Mat33().set(
-            k[4]*k[8]-k[5]*k[7], k[2]*k[7]-k[1]*k[8], k[1]*k[5]-k[2]*k[4],
-            k[5]*k[6]-k[3]*k[8], k[0]*k[8]-k[2]*k[6], k[2]*k[3]-k[0]*k[5],
-            k[3]*k[7]-k[4]*k[6], k[1]*k[6]-k[0]*k[7], k[0]*k[4]-k[1]*k[3]
+            k.e4*k.e8-k.e5*k.e7, k.e2*k.e7-k.e1*k.e8, k.e1*k.e5-k.e2*k.e4,
+            k.e5*k.e6-k.e3*k.e8, k.e0*k.e8-k.e2*k.e6, k.e2*k.e3-k.e0*k.e5,
+            k.e3*k.e7-k.e4*k.e6, k.e1*k.e6-k.e0*k.e7, k.e0*k.e4-k.e1*k.e3
         ).scaleEqual( inv );
 
         this.velx = this.p2.x-this.p1.x;
@@ -197,9 +197,9 @@ Object.assign( LinearConstraint.prototype, {
         var rvx = this.l2.x-this.l1.x+this.a2.y*this.r2z-this.a2.z*this.r2y-this.a1.y*this.r1z+this.a1.z*this.r1y-this.velx;
         var rvy = this.l2.y-this.l1.y+this.a2.z*this.r2x-this.a2.x*this.r2z-this.a1.z*this.r1x+this.a1.x*this.r1z-this.vely;
         var rvz = this.l2.z-this.l1.z+this.a2.x*this.r2y-this.a2.y*this.r2x-this.a1.x*this.r1y+this.a1.y*this.r1x-this.velz;
-        var nimpx = rvx*d[0]+rvy*d[1]+rvz*d[2];
-        var nimpy = rvx*d[3]+rvy*d[4]+rvz*d[5];
-        var nimpz = rvx*d[6]+rvy*d[7]+rvz*d[8];
+        var nimpx = rvx*d.e0+rvy*d.e1+rvz*d.e2;
+        var nimpy = rvx*d.e3+rvy*d.e4+rvz*d.e5;
+        var nimpz = rvx*d.e6+rvy*d.e7+rvz*d.e8;
         this.impx += nimpx;
         this.impy += nimpy;
         this.impz += nimpz;
@@ -216,6 +216,8 @@ Object.assign( LinearConstraint.prototype, {
         this.a2.y -= nimpx*this.ax2y+nimpy*this.ay2y+nimpz*this.az2y;
         this.a2.z -= nimpx*this.ax2z+nimpy*this.ay2z+nimpz*this.az2z;
 
+        this.ii1.delete();
+        this.ii2.delete();
     }
 
 } );

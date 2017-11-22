@@ -9,9 +9,10 @@ function SAPAxis (){
 
     this.numElements = 0;
     this.bufferSize = 256;
-    this.elements = [];
-    this.elements.length = this.bufferSize;
-    this.stack = new Float32Array( 64 );
+    this.sap_elements = [];
+    this.sap_elements.length = this.bufferSize;
+    this.stack = [];//new Float32Array( 64 );
+    for( var n = 0; n < 64; n++ ) this.stack.push(0);
 
 }
 
@@ -28,11 +29,11 @@ Object.assign( SAPAxis.prototype, {
             var i = this.numElements;
             while(i--){
             //for(var i=0, l=this.numElements; i<l; i++){
-                newElements[i] = this.elements[i];
+                newElements[i] = this.sap_elements[i];
             }
         }
-        this.elements[this.numElements++] = min;
-        this.elements[this.numElements++] = max;
+        this.sap_elements[this.numElements++] = min;
+        this.sap_elements[this.numElements++] = max;
 
     },
 
@@ -41,7 +42,7 @@ Object.assign( SAPAxis.prototype, {
         var minIndex=-1;
         var maxIndex=-1;
         for(var i=0, l=this.numElements; i<l; i++){
-            var e=this.elements[i];
+            var e=this.sap_elements[i];
             if(e==min||e==max){
                 if(minIndex==-1){
                     minIndex=i;
@@ -52,14 +53,14 @@ Object.assign( SAPAxis.prototype, {
             }
         }
         for(i = minIndex+1, l = maxIndex; i < l; i++){
-            this.elements[i-1] = this.elements[i];
+            this.sap_elements[i-1] = this.sap_elements[i];
         }
         for(i = maxIndex+1, l = this.numElements; i < l; i++){
-            this.elements[i-2] = this.elements[i];
+            this.sap_elements[i-2] = this.sap_elements[i];
         }
 
-        this.elements[--this.numElements] = null;
-        this.elements[--this.numElements] = null;
+        this.sap_elements[--this.numElements] = null;
+        this.sap_elements[--this.numElements] = null;
 
     },
 
@@ -72,7 +73,7 @@ Object.assign( SAPAxis.prototype, {
         count = 0;
 
         var giveup = false;
-        var elements = this.elements;
+        var elements = this.sap_elements;
         for( var i = 1, l = this.numElements; i < l; i++){ // try insertion sort
             var tmp=elements[i];
             var pivot=tmp.value;
@@ -157,7 +158,7 @@ Object.assign( SAPAxis.prototype, {
         var num = 1;
         var sum = 0;
         for(var i = 1, l = this.numElements; i<l; i++){
-            if(this.elements[i].max){
+            if(this.sap_elements[i].max){
                 num--;
             }else{
                 sum += num;

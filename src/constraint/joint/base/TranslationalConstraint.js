@@ -98,25 +98,25 @@ Object.assign( TranslationalConstraint.prototype, {
 
         var ti1 = this.i1.elements;
         var ti2 = this.i2.elements;
-        this.i1e00=ti1[0];
-        this.i1e01=ti1[1];
-        this.i1e02=ti1[2];
-        this.i1e10=ti1[3];
-        this.i1e11=ti1[4];
-        this.i1e12=ti1[5];
-        this.i1e20=ti1[6];
-        this.i1e21=ti1[7];
-        this.i1e22=ti1[8];
+        this.i1e00=ti1.e0;
+        this.i1e01=ti1.e1;
+        this.i1e02=ti1.e2;
+        this.i1e10=ti1.e3;
+        this.i1e11=ti1.e4;
+        this.i1e12=ti1.e5;
+        this.i1e20=ti1.e6;
+        this.i1e21=ti1.e7;
+        this.i1e22=ti1.e8;
 
-        this.i2e00=ti2[0];
-        this.i2e01=ti2[1];
-        this.i2e02=ti2[2];
-        this.i2e10=ti2[3];
-        this.i2e11=ti2[4];
-        this.i2e12=ti2[5];
-        this.i2e20=ti2[6];
-        this.i2e21=ti2[7];
-        this.i2e22=ti2[8];
+        this.i2e00=ti2.e0;
+        this.i2e01=ti2.e1;
+        this.i2e02=ti2.e2;
+        this.i2e10=ti2.e3;
+        this.i2e11=ti2.e4;
+        this.i2e12=ti2.e5;
+        this.i2e20=ti2.e6;
+        this.i2e21=ti2.e7;
+        this.i2e22=ti2.e8;
 
         var dx=this.p2.x-this.p1.x;
         var dy=this.p2.y-this.p1.y;

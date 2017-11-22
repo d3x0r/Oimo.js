@@ -304,9 +304,9 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
     supportPoint: function ( c, dx, dy, dz, out ) {
 
         var rot=c.rotation.elements;
-        var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
-        var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
-        var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
+        var ldx=rot.e0*dx+rot.e3*dy+rot.e6*dz;
+        var ldy=rot.e1*dx+rot.e4*dy+rot.e7*dz;
+        var ldz=rot.e2*dx+rot.e5*dy+rot.e8*dz;
         var radx=ldx;
         var radz=ldz;
         var len=radx*radx+radz*radz;
@@ -337,9 +337,9 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
         oz=radz*len;
         }
         }
-        ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
-        ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
-        ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
+        ldx=rot.e0*ox+rot.e1*oy+rot.e2*oz+c.position.x;
+        ldy=rot.e3*ox+rot.e4*oy+rot.e5*oz+c.position.y;
+        ldz=rot.e6*ox+rot.e7*oy+rot.e8*oz+c.position.z;
         out.set( ldx, ldy, ldz );
 
     },

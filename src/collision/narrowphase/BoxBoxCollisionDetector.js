@@ -8,9 +8,12 @@ import { _Math } from '../../math/Math';
 function BoxBoxCollisionDetector() {
 
     CollisionDetector.call( this );
-    this.clipVertices1 = new Float32Array( 24 ); // 8 vertices x,y,z
-    this.clipVertices2 = new Float32Array( 24 );
-    this.used = new Float32Array( 8 );
+    this.clipVertices1 = [];//new Float32Array( 24 ); // 8 vertices x,y,z
+    for( var n = 0; n < 24; n++ ) this.clipVertices1.push(0);
+    this.clipVertices2 = [];//new Float32Array( 24 );
+    for( var n = 0; n < 24; n++ ) this.clipVertices2.push(0);
+    this.used = [];//new Float32Array( 8 );
+    for( var n = 0; n < 8; n++ ) this.used.push(0);
     
     this.INF = 1/0;
 
@@ -57,8 +60,8 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
             b1=(shape2);
             b2=(shape1);
         }
-        var V1 = b1.elements;
-        var V2 = b2.elements;
+        var V1 = b1.box_elements;
+        var V2 = b2.box_elements;
 
         var D1 = b1.dimentions;
         var D2 = b2.dimentions;

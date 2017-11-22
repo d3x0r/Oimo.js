@@ -256,8 +256,8 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
             b2=shape1;
         }
 
-        var V1 = b1.elements;
-        var V2 = b2.elements;
+        var V1 = b1.box_elements;
+        var V2 = b2.box_elements;
 
         var D1 = b1.dimentions;
         var D2 = b2.dimentions;

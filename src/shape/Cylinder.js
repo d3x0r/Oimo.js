@@ -44,11 +44,11 @@ Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
         var te = this.rotation.elements;
         var len, wx, hy, dz, xx, yy, zz, w, h, d, p;
 
-        xx = te[1] * te[1];
-        yy = te[4] * te[4];
-        zz = te[7] * te[7];
+        xx = te.e1 * te.e1;
+        yy = te.e4 * te.e4;
+        zz = te.e7 * te.e7;
 
-        this.normalDirection.set( te[1], te[4], te[7] );
+        this.normalDirection.set( te.e1, te.e4, te.e7 );
         this.halfDirection.scale( this.normalDirection, this.halfHeight );
 
         wx = 1 - xx;

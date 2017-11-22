@@ -9,7 +9,7 @@ import { Vec3 } from '../../math/Vec3';
  */
  
 function SpherePlaneCollisionDetector ( flip ){
-
+  console.log( "SP dectector" );
     CollisionDetector.call( this );
 
     this.flip = flip;

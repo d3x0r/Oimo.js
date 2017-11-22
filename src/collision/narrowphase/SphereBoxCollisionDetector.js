@@ -7,7 +7,6 @@ import { _Math } from '../../math/Math';
  * @author saharan
  */
 function SphereBoxCollisionDetector ( flip ) {
-    
     CollisionDetector.call( this );
     this.flip = flip;
 
