@@ -220,8 +220,8 @@ Object.assign( RigidBody.prototype, {
         this.localInertia.set(0,0,0,0,0,0,0,0,0);
 
 
-        var tmpM = new Mat33();
-        var tmpV = new Vec3();
+        var tmpM = Mat33.new();
+        var tmpV = Vec3.new();
 
         for( var shape = this.shapes; shape !== null; shape = shape.next ){
 
@@ -236,6 +236,8 @@ Object.assign( RigidBody.prototype, {
             this.localInertia.addOffset( shapeMass, shape.relativePosition );
 
         }
+
+        tmpM.delete();
 
         this.inverseMass = 1 / this.mass;
         tmpV.scaleEqual( this.inverseMass );
@@ -252,6 +254,7 @@ Object.assign( RigidBody.prototype, {
         }
 
         this.inverseLocalInertia.invert( this.localInertia );
+        tmpV.delete();
 
         //}
 
@@ -424,8 +427,9 @@ Object.assign( RigidBody.prototype, {
 
     applyImpulse: function(position, force){
         this.linearVelocity.addScaledVector(force, this.inverseMass);
-        var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
+        var rel = Vec3.clone( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
         this.angularVelocity.add( rel );
+        rel.delete();
     },
 
 
