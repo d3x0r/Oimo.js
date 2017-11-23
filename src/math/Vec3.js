@@ -17,7 +17,7 @@ Vec3.clone = function( v ) {
 	return vec;
 }
 Vec3.cloneScale = function( v, s ) {
-        var vec = pool.pop();
+        var vec = pool.pop() || new Vec3();
 	vec.x = v.x * s;
 	vec.y = v.y * s;
 	vec.z = v.z * s;
