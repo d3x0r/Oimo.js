@@ -291,7 +291,8 @@ function InfoDisplay(world){
 
     this.parent = world;
 
-    this.infos = new Float32Array( 13 );
+    this.infos = [];//new Float32Array( 13 );
+    for( var n = 0; n < 13; n++ ) this.infos.push(0.0);
     this.f = [0,0,0];
 
     this.times = [0,0,0,0];
@@ -315,6 +316,19 @@ function InfoDisplay(world){
     this.MaxSolvingTime = 0;
     this.MaxTotalTime = 0;
     this.MaxUpdateTime = 0;
+
+    this.MinBroadPhaseTime = 0;
+    this.MinNarrowPhaseTime = 0;
+    this.MinSolvingTime = 0;
+    this.MinTotalTime = 0;
+    this.MinUpdateTime = 0;
+
+    this.TotBroadPhaseTime = 0;
+    this.TotNarrowPhaseTime = 0;
+    this.TotSolvingTime = 0;
+    this.TotTotalTime = 0;
+    this.TotUpdateTime = 0;
+
 }
 
 Object.assign( InfoDisplay.prototype, {
@@ -331,6 +345,21 @@ Object.assign( InfoDisplay.prototype, {
         this.MaxTotalTime = 0;
         this.MaxUpdateTime = 0;
 
+        this.MinBroadPhaseTime = 100;
+        this.MinNarrowPhaseTime = 100;
+        this.MinSolvingTime = 100;
+        this.MinTotalTime = 100;
+        this.MinUpdateTime = 100;
+
+    },
+
+    resetAvg: function(){
+
+        this.TotBroadPhaseTime = 0;
+        this.TotNarrowPhaseTime = 0;
+        this.TotSolvingTime = 0;
+        this.TotTotalTime = 0;
+        this.TotUpdateTime = 0;
     },
 
     calcBroadPhase: function () {
@@ -354,21 +383,31 @@ Object.assign( InfoDisplay.prototype, {
         this.totalTime = this.times[ 2 ] - this.times[ 0 ];
         this.updateTime = this.totalTime - ( this.broadPhaseTime + this.narrowPhaseTime + this.solvingTime );
 
+
         if( this.tt === 100 ) this.resetMax();
 
-        if( this.tt > 100 ){
+        this.TotBroadPhaseTime += this.broadPhaseTime;
+        this.TotNarrowPhaseTime += this.narrowPhaseTime;
+        this.TotSolvingTime += this.solvingTime;
+        this.TotTotalTime += this.totalTime;
+        this.TotUpdateTime += this.updateTime;
+
             if( this.broadPhaseTime > this.MaxBroadPhaseTime ) this.MaxBroadPhaseTime = this.broadPhaseTime;
             if( this.narrowPhaseTime > this.MaxNarrowPhaseTime ) this.MaxNarrowPhaseTime = this.narrowPhaseTime;
             if( this.solvingTime > this.MaxSolvingTime ) this.MaxSolvingTime = this.solvingTime;
             if( this.totalTime > this.MaxTotalTime ) this.MaxTotalTime = this.totalTime;
             if( this.updateTime > this.MaxUpdateTime ) this.MaxUpdateTime = this.updateTime;
-        }
 
+            if( this.broadPhaseTime < this.MinBroadPhaseTime ) this.MinBroadPhaseTime = this.broadPhaseTime;
+            if( this.narrowPhaseTime <this.MinNarrowPhaseTime ) this.MinNarrowPhaseTime = this.narrowPhaseTime;
+            if( this.solvingTime < this.MinSolvingTime ) this.MinSolvingTime = this.solvingTime;
+            if( this.totalTime < this.MinTotalTime ) this.MinTotalTime = this.totalTime;
+            if( this.updateTime < this.MinUpdateTime ) this.MinUpdateTime = this.updateTime;
 
         this.upfps();
 
         this.tt ++;
-        if(this.tt > 500) this.tt = 0;
+        if(this.tt > 500) { this.resetAvg(); this.tt = 1; }
 
     },
 
@@ -389,11 +428,11 @@ Object.assign( InfoDisplay.prototype, {
             "paircheck "+this.parent.broadPhase.numPairChecks+"<br>",
             "island &nbsp;&nbsp;&nbsp;"+this.parent.numIslands +"<br><br>",
             "Time in milliseconds<br><br>",
-            "broadphase &nbsp;"+ _Math.fix(this.broadPhaseTime) + " | " + _Math.fix(this.MaxBroadPhaseTime) +"<br>",
-            "narrowphase "+ _Math.fix(this.narrowPhaseTime)  + " | " + _Math.fix(this.MaxNarrowPhaseTime) + "<br>",
-            "solving &nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.solvingTime)+ " | " + _Math.fix(this.MaxSolvingTime) + "<br>",
-            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.totalTime) + " | " + _Math.fix(this.MaxTotalTime) + "<br>",
-            "updating &nbsp;&nbsp;&nbsp;"+ _Math.fix(this.updateTime) + " | " + _Math.fix(this.MaxUpdateTime) + "<br>"
+            "broadphase &nbsp;"                         + _Math.fix(this.broadPhaseTime)   + " | " + _Math.fix(this.MaxBroadPhaseTime)  + " | " + _Math.fix(this.MinBroadPhaseTime)  + " | " + _Math.fix(this.TotBroadPhaseTime/this.tt)+"<br>",
+            "narrowphase "                              + _Math.fix(this.narrowPhaseTime)  + " | " + _Math.fix(this.MaxNarrowPhaseTime) + " | " + _Math.fix(this.MinNarrowPhaseTime) + " | " + _Math.fix(this.TotNarrowPhaseTime/this.tt)+ "<br>",
+            "solving &nbsp;&nbsp;&nbsp;&nbsp;"          + _Math.fix(this.solvingTime)      + " | " + _Math.fix(this.MaxSolvingTime)     + " | " + _Math.fix(this.MinSolvingTime)     + " | " + _Math.fix(this.TotSolvingTime/this.tt) + "<br>",
+            "total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ _Math.fix(this.totalTime)        + " | " + _Math.fix(this.MaxTotalTime)       + " | " + _Math.fix(this.MinTotalTime)       + " | " + _Math.fix(this.TotTotalTime/this.tt)+ "<br>",
+            "updating &nbsp;&nbsp;&nbsp;"               + _Math.fix(this.updateTime)       + " | " + _Math.fix(this.MaxUpdateTime)      + " | " + _Math.fix(this.MinUpdateTime)      + " | " + _Math.fix(this.TotUpdateTime/this.tt)+ "<br>"
         ].join("\n");
         return info;
     },
@@ -424,6 +463,30 @@ function Vec3 ( x, y, z ) {
     
 }
 
+Vec3.clone = function( v ) {
+        var vec = pool.pop() || new Vec3();
+	vec.x = v.x;
+	vec.y = v.y;
+	vec.z = v.z;
+	return vec;
+};
+Vec3.cloneScale = function( v, s ) {
+        var vec = pool.pop() || new Vec3();
+	vec.x = v.x * s;
+	vec.y = v.y * s;
+	vec.z = v.z * s;
+	return vec;
+};
+
+var pool = [];
+
+Vec3.new = function() {
+    var v = pool.pop();
+    if( !v ) v = new Vec3();
+    else v.x = v.y = v.z = 0;
+    return v;
+};
+
 Object.assign( Vec3.prototype, {
 
     Vec3: true,
@@ -436,7 +499,12 @@ Object.assign( Vec3.prototype, {
         return this;
 
     },
-
+    delete() {
+        pool.push( this );
+    },
+    map: function(cb) {
+        return [cb(this.x),cb(this.y),cb(this.z)];
+    },
     add: function ( a, b ) {
 
         if ( b !== undefined ) return this.addVectors( a, b );
@@ -558,7 +626,15 @@ Object.assign( Vec3.prototype, {
         return this;
 
     },
+    addAveragedScaledVector: function ( v, v2, s ) {
 
+        this.x += ( v2.x + v.x ) * 0.5 * s;
+        this.y += ( v2.y + v.y ) * 0.5 * s;
+        this.z += ( v2.z + v.z ) * 0.5 * s;
+
+        return this;
+
+    },
     subScaledVector: function ( v, s ) {
 
         this.x -= v.x * s;
@@ -691,24 +767,6 @@ Object.assign( Vec3.prototype, {
 
     },
 
-    /*mul: function( b, a, m ){
-
-        return this.mulMat( m, a ).add( b );
-
-    },
-
-    mulMat: function( m, a ){
-
-        var e = m.elements;
-        var x = a.x, y = a.y, z = a.z;
-
-        this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
-        this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
-        this.z = e[ 6 ] * x + e[ 7 ] * y + e[ 8 ] * z;
-        return this;
-
-    },*/
-
     applyMatrix3: function ( m, transpose ) {
 
         //if( transpose ) m = m.clone().transpose();
@@ -717,15 +775,15 @@ Object.assign( Vec3.prototype, {
 
         if( transpose ){
             
-            this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
-            this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
-            this.z = e[ 6 ] * x + e[ 7 ] * y + e[ 8 ] * z;
+            this.x = e.e0 * x + e.e1 * y + e.e2 * z;
+            this.y = e.e3 * x + e.e4 * y + e.e5 * z;
+            this.z = e.e6 * x + e.e7 * y + e.e8 * z;
 
         } else {
       
-            this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
-            this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
-            this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
+            this.x = e.e0 * x + e.e3 * y + e.e6 * z;
+            this.y = e.e1 * x + e.e4 * y + e.e7 * z;
+            this.z = e.e2 * x + e.e5 * y + e.e8 * z;
         }
 
         return this;
@@ -873,6 +931,20 @@ Object.assign( Quat.prototype, {
         var ax = v.x, ay = v.y, az = v.z;
         var qw = this.w, qx = this.x, qy = this.y, qz = this.z;
         t *= 0.5;    
+        this.x += t * (  ax*qw + ay*qz - az*qy );
+        this.y += t * (  ay*qw + az*qx - ax*qz );
+        this.z += t * (  az*qw + ax*qy - ay*qx );
+        this.w += t * ( -ax*qx - ay*qy - az*qz );
+        this.normalize();
+        return this;
+
+    },
+
+    addAveragedTime: function( v, v2, t ){
+
+        var ax = (v.x+v2.x) * 0.5, ay = (v.y+v2.y) * 0.5, az = (v.z+v2.z) * 0.5;
+        var qw = this.w, qx = this.x, qy = this.y, qz = this.z;
+        t *= 0.5;
         this.x += t * (  ax*qw + ay*qz - az*qy );
         this.y += t * (  ay*qw + az*qx - ax*qz );
         this.z += t * (  az*qw + ax*qy - ay*qx );
@@ -1094,7 +1166,7 @@ Object.assign( Quat.prototype, {
 
     setFromMat33: function ( m ) {
 
-        var trace = m[0] + m[4] + m[8];
+        var trace = m.e0 + m.e4 + m.e8;
         var s;
 
         if ( trace > 0 ) {
@@ -1102,17 +1174,53 @@ Object.assign( Quat.prototype, {
             s = _Math.sqrt( trace + 1.0 );
             this.w = 0.5 / s;
             s = 0.5 / s;
-            this.x = ( m[5] - m[7] ) * s;
-            this.y = ( m[6] - m[2] ) * s;
-            this.z = ( m[1] - m[3] ) * s;
+            this.x = ( m.e5 - m.e7 ) * s;
+            this.y = ( m.e6 - m.e2 ) * s;
+            this.z = ( m.e1 - m.e3 ) * s;
 
         } else {
 
             var out = [];
             var i = 0;
-            if ( m[4] > m[0] ) i = 1;
-            if ( m[8] > m[i*3+i] ) i = 2;
-
+            if ( m.e4 > m.e0 ){ i = 1;
+                if ( m.e8 > m.e4 ){
+                    i = 2; // j=0, k=1
+                    s = _Math.sqrt( m.e8 - m.e0 - m.e4 + 1.0 );
+                    this.z = 0.5 * fRoot;
+                    s = 0.5 / fRoot;
+                    this.w = ( m.e1 - m.e1 ) * s;
+                    this.x = ( m.e2 + m.e6 ) * s;
+                    this.y = ( m.e5 + m.e7 ) * s;
+                }
+		else{
+                    // i=1 // j=2, k=0
+                    s = _Math.sqrt( m.e4 - m.e8 - m.e0 + 1.0 );
+                    this.y = 0.5 * fRoot;
+                    s = 0.5 / fRoot;
+                    this.w = ( m.e4 - m.e2 ) * s;
+                    this.z = ( m.e7 + m.e5 ) * s;
+                    this.x = ( m.e1 + m.e3 ) * s;
+		}
+            }else{
+	        if ( m.e8 > m.e0 ) {
+		    i = 2; // j=0, k=1
+                    s = _Math.sqrt( m.e8 - m.e0 - m.e4 + 1.0 );
+                    this.z = 0.5 * fRoot;
+                    s = 0.5 / fRoot;
+                    this.w = ( m.e1 - m.e1 ) * s;
+                    this.x = ( m.e2 + m.e6 ) * s;
+                    this.y = ( m.e5 + m.e7 ) * s;
+		}else {
+                    //i = 0; // j=1, k=2
+                    s = _Math.sqrt( m.e0 - m.e4 - m.e8 + 1.0 );
+                    this.x = 0.5 * fRoot;
+                    s = 0.5 / fRoot;
+                    this.w = ( m.e5 - m.e7 ) * s;
+                    this.y = ( m.e3 + m.e1 ) * s;
+                    this.z = ( m.e6 + m.e2 ) * s;
+	        }
+	    }
+/*
             var j = (i+1)%3;
             var k = (i+2)%3;
             
@@ -1126,7 +1234,7 @@ Object.assign( Quat.prototype, {
             this.x = out[1];
             this.y = out[2];
             this.z = out[3];
-
+*/
         }
 
         return this;
@@ -1156,11 +1264,17 @@ Object.assign( Quat.prototype, {
 
 function Mat33 ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
-    this.elements = [
-        1, 0, 0,
-        0, 1, 0,
-        0, 0, 1
-    ];
+    this.elements = {
+        e0:1, e1:0, e2:0,
+        e3:0, e4:1, e5:0,
+        e6:0, e7:0, e8:1
+    };
+
+    //this.elements = [
+    //    1, 0, 0,
+    //    0, 1, 0,
+    //    0, 0, 1
+    //];
 
     if ( arguments.length > 0 ) {
 
@@ -1170,6 +1284,14 @@ function Mat33 ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
 }
 
+var pool$1 = [];
+
+Mat33.new = function() {
+    var c = pool$1.pop();
+    if( !c ) c = new Mat33();
+    return c;
+};
+
 Object.assign( Mat33.prototype, {
 
     Mat33: true,
@@ -1177,9 +1299,9 @@ Object.assign( Mat33.prototype, {
     set: function ( e00, e01, e02, e10, e11, e12, e20, e21, e22 ){
 
         var te = this.elements;
-        te[0] = e00; te[1] = e01; te[2] = e02;
-        te[3] = e10; te[4] = e11; te[5] = e12;
-        te[6] = e20; te[7] = e21; te[8] = e22;
+        te.e0 = e00; te.e1 = e01; te.e2 = e02;
+        te.e3 = e10; te.e4 = e11; te.e5 = e12;
+        te.e6 = e20; te.e7 = e21; te.e8 = e22;
         return this;
 
     },
@@ -1189,9 +1311,9 @@ Object.assign( Mat33.prototype, {
         if( b !== undefined ) return this.addMatrixs( a, b );
 
         var e = this.elements, te = a.elements;
-        e[0] += te[0]; e[1] += te[1]; e[2] += te[2];
-        e[3] += te[3]; e[4] += te[4]; e[5] += te[5];
-        e[6] += te[6]; e[7] += te[7]; e[8] += te[8];
+        e.e0 += te.e0; e.e1 += te.e1; e.e2 += te.e2;
+        e.e3 += te.e3; e.e4 += te.e4; e.e5 += te.e5;
+        e.e6 += te.e6; e.e7 += te.e7; e.e8 += te.e8;
         return this;
 
     },
@@ -1199,9 +1321,9 @@ Object.assign( Mat33.prototype, {
     addMatrixs: function ( a, b ) {
 
         var te = this.elements, tem1 = a.elements, tem2 = b.elements;
-        te[0] = tem1[0] + tem2[0]; te[1] = tem1[1] + tem2[1]; te[2] = tem1[2] + tem2[2];
-        te[3] = tem1[3] + tem2[3]; te[4] = tem1[4] + tem2[4]; te[5] = tem1[5] + tem2[5];
-        te[6] = tem1[6] + tem2[6]; te[7] = tem1[7] + tem2[7]; te[8] = tem1[8] + tem2[8];
+        te.e0 = tem1.e0 + tem2.e0; te.e1 = tem1.e1 + tem2.e1; te.e2 = tem1.e2 + tem2.e2;
+        te.e3 = tem1.e3 + tem2.e3; te.e4 = tem1.e4 + tem2.e4; te.e5 = tem1.e5 + tem2.e5;
+        te.e6 = tem1.e6 + tem2.e6; te.e7 = tem1.e7 + tem2.e7; te.e8 = tem1.e8 + tem2.e8;
         return this;
 
     },
@@ -1209,9 +1331,9 @@ Object.assign( Mat33.prototype, {
     addEqual: function( m ){
 
         var te = this.elements, tem = m.elements;
-        te[0] += tem[0]; te[1] += tem[1]; te[2] += tem[2];
-        te[3] += tem[3]; te[4] += tem[4]; te[5] += tem[5];
-        te[6] += tem[6]; te[7] += tem[7]; te[8] += tem[8];
+        te.e0 += tem.e0; te.e1 += tem.e1; te.e2 += tem.e2;
+        te.e3 += tem.e3; te.e4 += tem.e4; te.e5 += tem.e5;
+        te.e6 += tem.e6; te.e7 += tem.e7; te.e8 += tem.e8;
         return this;
 
     },
@@ -1221,9 +1343,9 @@ Object.assign( Mat33.prototype, {
         if( b !== undefined ) return this.subMatrixs( a, b );
 
         var e = this.elements, te = a.elements;
-        e[0] -= te[0]; e[1] -= te[1]; e[2] -= te[2];
-        e[3] -= te[3]; e[4] -= te[4]; e[5] -= te[5];
-        e[6] -= te[6]; e[7] -= te[7]; e[8] -= te[8];
+        e.e0 -= te.e0; e.e1 -= te.e1; e.e2 -= te.e2;
+        e.e3 -= te.e3; e.e4 -= te.e4; e.e5 -= te.e5;
+        e.e6 -= te.e6; e.e7 -= te.e7; e.e8 -= te.e8;
         return this;
 
     },
@@ -1231,9 +1353,9 @@ Object.assign( Mat33.prototype, {
     subMatrixs: function ( a, b ) {
 
         var te = this.elements, tem1 = a.elements, tem2 = b.elements;
-        te[0] = tem1[0] - tem2[0]; te[1] = tem1[1] - tem2[1]; te[2] = tem1[2] - tem2[2];
-        te[3] = tem1[3] - tem2[3]; te[4] = tem1[4] - tem2[4]; te[5] = tem1[5] - tem2[5];
-        te[6] = tem1[6] - tem2[6]; te[7] = tem1[7] - tem2[7]; te[8] = tem1[8] - tem2[8];
+        te.e0 = tem1.e0 - tem2.e0; te.e1 = tem1.e1 - tem2.e1; te.e2 = tem1.e2 - tem2.e2;
+        te.e3 = tem1.e3 - tem2.e3; te.e4 = tem1.e4 - tem2.e4; te.e5 = tem1.e5 - tem2.e5;
+        te.e6 = tem1.e6 - tem2.e6; te.e7 = tem1.e7 - tem2.e7; te.e8 = tem1.e8 - tem2.e8;
         return this;
 
     },
@@ -1241,9 +1363,9 @@ Object.assign( Mat33.prototype, {
     subEqual: function ( m ) {
 
         var te = this.elements, tem = m.elements;
-        te[0] -= tem[0]; te[1] -= tem[1]; te[2] -= tem[2];
-        te[3] -= tem[3]; te[4] -= tem[4]; te[5] -= tem[5];
-        te[6] -= tem[6]; te[7] -= tem[7]; te[8] -= tem[8];
+        te.e0 -= tem.e0; te.e1 -= tem.e1; te.e2 -= tem.e2;
+        te.e3 -= tem.e3; te.e4 -= tem.e4; te.e5 -= tem.e5;
+        te.e6 -= tem.e6; te.e7 -= tem.e7; te.e8 -= tem.e8;
         return this;
 
     },
@@ -1251,9 +1373,9 @@ Object.assign( Mat33.prototype, {
     scale: function ( m, s ) {
 
         var te = this.elements, tm = m.elements;
-        te[0] = tm[0] * s; te[1] = tm[1] * s; te[2] = tm[2] * s;
-        te[3] = tm[3] * s; te[4] = tm[4] * s; te[5] = tm[5] * s;
-        te[6] = tm[6] * s; te[7] = tm[7] * s; te[8] = tm[8] * s;
+        te.e0 = tm.e0 * s; te.e1 = tm.e1 * s; te.e2 = tm.e2 * s;
+        te.e3 = tm.e3 * s; te.e4 = tm.e4 * s; te.e5 = tm.e5 * s;
+        te.e6 = tm.e6 * s; te.e7 = tm.e7 * s; te.e8 = tm.e8 * s;
         return this;
 
     },
@@ -1261,9 +1383,9 @@ Object.assign( Mat33.prototype, {
     scaleEqual: function ( s ){// multiplyScalar
 
         var te = this.elements;
-        te[0] *= s; te[1] *= s; te[2] *= s;
-        te[3] *= s; te[4] *= s; te[5] *= s;
-        te[6] *= s; te[7] *= s; te[8] *= s;
+        te.e0 *= s; te.e1 *= s; te.e2 *= s;
+        te.e3 *= s; te.e4 *= s; te.e5 *= s;
+        te.e6 *= s; te.e7 *= s; te.e8 *= s;
         return this;
 
     },
@@ -1276,23 +1398,25 @@ Object.assign( Mat33.prototype, {
         var tm1 = m1.elements;
         var tm2 = m2.elements;
 
-        var a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
-        var a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
-        var a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
+        var a0 = tm1.e0, a3 = tm1.e3, a6 = tm1.e6;
+        var a1 = tm1.e1, a4 = tm1.e4, a7 = tm1.e7;
+        var a2 = tm1.e2, a5 = tm1.e5, a8 = tm1.e8;
 
-        var b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
-        var b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
-        var b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
+        var b0 = tm2.e0, b3 = tm2.e3, b6 = tm2.e6;
+        var b1 = tm2.e1, b4 = tm2.e4, b7 = tm2.e7;
+        var b2 = tm2.e2, b5 = tm2.e5, b8 = tm2.e8;
 
-        te[0] = a0*b0 + a1*b3 + a2*b6;
-        te[1] = a0*b1 + a1*b4 + a2*b7;
-        te[2] = a0*b2 + a1*b5 + a2*b8;
-        te[3] = a3*b0 + a4*b3 + a5*b6;
-        te[4] = a3*b1 + a4*b4 + a5*b7;
-        te[5] = a3*b2 + a4*b5 + a5*b8;
-        te[6] = a6*b0 + a7*b3 + a8*b6;
-        te[7] = a6*b1 + a7*b4 + a8*b7;
-        te[8] = a6*b2 + a7*b5 + a8*b8;
+        te.e0 = a0*b0 + a1*b3 + a2*b6;
+        te.e1 = a0*b1 + a1*b4 + a2*b7;
+        te.e2 = a0*b2 + a1*b5 + a2*b8;
+        te.e3 = a3*b0 + a4*b3 + a5*b6;
+        te.e4 = a3*b1 + a4*b4 + a5*b7;
+        te.e5 = a3*b2 + a4*b5 + a5*b8;
+        te.e6 = a6*b0 + a7*b3 + a8*b6;
+        te.e7 = a6*b1 + a7*b4 + a8*b7;
+        te.e8 = a6*b2 + a7*b5 + a8*b8;
+
+        if( transpose ) m2.delete();
 
         return this;
 
@@ -1307,13 +1431,13 @@ Object.assign( Mat33.prototype, {
         var tm2 = m2.elements;
         //var tmp;
 
-        var a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
-        var a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
-        var a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
+        var a0 = tm1.e0, a3 = tm1.e3, a6 = tm1.e6;
+        var a1 = tm1.e1, a4 = tm1.e4, a7 = tm1.e7;
+        var a2 = tm1.e2, a5 = tm1.e5, a8 = tm1.e8;
 
-        var b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
-        var b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
-        var b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
+        var b0 = tm2.e0, b3 = tm2.e3, b6 = tm2.e6;
+        var b1 = tm2.e1, b4 = tm2.e4, b7 = tm2.e7;
+        var b2 = tm2.e2, b5 = tm2.e5, b8 = tm2.e8;
 
         /*if( transpose ){
 
@@ -1323,15 +1447,15 @@ Object.assign( Mat33.prototype, {
 
         }
 
-        te[0] = a0*b0 + a1*b3 + a2*b6;
-        te[1] = a0*b1 + a1*b4 + a2*b7;
-        te[2] = a0*b2 + a1*b5 + a2*b8;
-        te[3] = a3*b0 + a4*b3 + a5*b6;
-        te[4] = a3*b1 + a4*b4 + a5*b7;
-        te[5] = a3*b2 + a4*b5 + a5*b8;
-        te[6] = a6*b0 + a7*b3 + a8*b6;
-        te[7] = a6*b1 + a7*b4 + a8*b7;
-        te[8] = a6*b2 + a7*b5 + a8*b8;
+        te.e0 = a0*b0 + a1*b3 + a2*b6;
+        te.e1 = a0*b1 + a1*b4 + a2*b7;
+        te.e2 = a0*b2 + a1*b5 + a2*b8;
+        te.e3 = a3*b0 + a4*b3 + a5*b6;
+        te.e4 = a3*b1 + a4*b4 + a5*b7;
+        te.e5 = a3*b2 + a4*b5 + a5*b8;
+        te.e6 = a6*b0 + a7*b3 + a8*b6;
+        te.e7 = a6*b1 + a7*b4 + a8*b7;
+        te.e8 = a6*b2 + a7*b5 + a8*b8;
 
         return this;
 
@@ -1341,18 +1465,18 @@ Object.assign( Mat33.prototype, {
         
         if( m !== undefined ){
             var a = m.elements;
-            this.set( a[0], a[3], a[6], a[1], a[4], a[7], a[2], a[5], a[8] );
+            this.set( a.e0, a.e3, a.e6, a.e1, a.e4, a.e7, a.e2, a.e5, a.e8 );
             return this;
         }
 
         var te = this.elements;
-        var a01 = te[1], a02 = te[2], a12 = te[5];
-        te[1] = te[3];
-        te[2] = te[6];
-        te[3] = a01;
-        te[5] = te[7];
-        te[6] = a02;
-        te[7] = a12;
+        var a01 = te.e1, a02 = te.e2, a12 = te.e5;
+        te.e1 = te.e3;
+        te.e2 = te.e6;
+        te.e3 = a01;
+        te.e5 = te.e7;
+        te.e6 = a02;
+        te.e7 = a12;
         return this;
 
     },
@@ -1364,13 +1488,13 @@ Object.assign( Mat33.prototype, {
         var prepend = Prepend || false;
         var te = this.elements, tm = m.elements;
         if(prepend){
-            te[0] = sx*tm[0]; te[1] = sx*tm[1]; te[2] = sx*tm[2];
-            te[3] = sy*tm[3]; te[4] = sy*tm[4]; te[5] = sy*tm[5];
-            te[6] = sz*tm[6]; te[7] = sz*tm[7]; te[8] = sz*tm[8];
+            te.e0 = sx*tm.e0; te.e1 = sx*tm.e1; te.e2 = sx*tm.e2;
+            te.e3 = sy*tm.e3; te.e4 = sy*tm.e4; te.e5 = sy*tm.e5;
+            te.e6 = sz*tm.e6; te.e7 = sz*tm.e7; te.e8 = sz*tm.e8;
         }else{
-            te[0] = tm[0]*sx; te[1] = tm[1]*sy; te[2] = tm[2]*sz;
-            te[3] = tm[3]*sx; te[4] = tm[4]*sy; te[5] = tm[5]*sz;
-            te[6] = tm[6]*sx; te[7] = tm[7]*sy; te[8] = tm[8]*sz;
+            te.e0 = tm.e0*sx; te.e1 = tm.e1*sy; te.e2 = tm.e2*sz;
+            te.e3 = tm.e3*sx; te.e4 = tm.e4*sy; te.e5 = tm.e5*sz;
+            te.e6 = tm.e6*sx; te.e7 = tm.e7*sy; te.e8 = tm.e8*sz;
         }
         return this;
 
@@ -1379,9 +1503,9 @@ Object.assign( Mat33.prototype, {
     transpose: function ( m ) {
 
         var te = this.elements, tm = m.elements;
-        te[0] = tm[0]; te[1] = tm[3]; te[2] = tm[6];
-        te[3] = tm[1]; te[4] = tm[4]; te[5] = tm[7];
-        te[6] = tm[2]; te[7] = tm[5]; te[8] = tm[8];
+        te.e0 = tm.e0; te.e1 = tm.e3; te.e2 = tm.e6;
+        te.e3 = tm.e1; te.e4 = tm.e4; te.e5 = tm.e7;
+        te.e6 = tm.e2; te.e7 = tm.e5; te.e8 = tm.e8;
         return this;
 
     },*/
@@ -1395,17 +1519,17 @@ Object.assign( Mat33.prototype, {
         var yy = y * y2, yz = y * z2, zz = z * z2;
         var wx = w * x2, wy = w * y2, wz = w * z2;
         
-        te[0] = 1 - ( yy + zz );
-        te[1] = xy - wz;
-        te[2] = xz + wy;
+        te.e0 = 1 - ( yy + zz );
+        te.e1 = xy - wz;
+        te.e2 = xz + wy;
 
-        te[3] = xy + wz;
-        te[4] = 1 - ( xx + zz );
-        te[5] = yz - wx;
+        te.e3 = xy + wz;
+        te.e4 = 1 - ( xx + zz );
+        te.e5 = yz - wx;
 
-        te[6] = xz - wy;
-        te[7] = yz + wx;
-        te[8] = 1 - ( xx + yy );
+        te.e6 = xz - wy;
+        te.e7 = yz + wx;
+        te.e8 = 1 - ( xx + yy );
 
         return this;
 
@@ -1414,9 +1538,9 @@ Object.assign( Mat33.prototype, {
     invert: function( m ) {
 
         var te = this.elements, tm = m.elements,
-        a00 = tm[0], a10 = tm[3], a20 = tm[6],
-        a01 = tm[1], a11 = tm[4], a21 = tm[7],
-        a02 = tm[2], a12 = tm[5], a22 = tm[8],
+        a00 = tm.e0, a10 = tm.e3, a20 = tm.e6,
+        a01 = tm.e1, a11 = tm.e4, a21 = tm.e7,
+        a02 = tm.e2, a12 = tm.e5, a22 = tm.e8,
         b01 = a22 * a11 - a12 * a21,
         b11 = -a22 * a10 + a12 * a20,
         b21 = a21 * a10 - a11 * a20,
@@ -1428,15 +1552,15 @@ Object.assign( Mat33.prototype, {
         }
 
         det = 1.0 / det;
-        te[0] = b01 * det;
-        te[1] = (-a22 * a01 + a02 * a21) * det;
-        te[2] = (a12 * a01 - a02 * a11) * det;
-        te[3] = b11 * det;
-        te[4] = (a22 * a00 - a02 * a20) * det;
-        te[5] = (-a12 * a00 + a02 * a10) * det;
-        te[6] = b21 * det;
-        te[7] = (-a21 * a00 + a01 * a20) * det;
-        te[8] = (a11 * a00 - a01 * a10) * det;
+        te.e0 = b01 * det;
+        te.e1 = (-a22 * a01 + a02 * a21) * det;
+        te.e2 = (a12 * a01 - a02 * a11) * det;
+        te.e3 = b11 * det;
+        te.e4 = (a22 * a00 - a02 * a20) * det;
+        te.e5 = (-a12 * a00 + a02 * a10) * det;
+        te.e6 = b21 * det;
+        te.e7 = (-a21 * a00 + a01 * a20) * det;
+        te.e8 = (a11 * a00 - a01 * a10) * det;
         return this;
 
     },
@@ -1448,18 +1572,18 @@ Object.assign( Mat33.prototype, {
         var relZ = v.z;
 
         var te = this.elements;
-        te[0] += m * ( relY * relY + relZ * relZ );
-        te[4] += m * ( relX * relX + relZ * relZ );
-        te[8] += m * ( relX * relX + relY * relY );
+        te.e0 += m * ( relY * relY + relZ * relZ );
+        te.e4 += m * ( relX * relX + relZ * relZ );
+        te.e8 += m * ( relX * relX + relY * relY );
         var xy = m * relX * relY;
         var yz = m * relY * relZ;
         var zx = m * relZ * relX;
-        te[1] -= xy;
-        te[3] -= xy;
-        te[2] -= yz;
-        te[6] -= yz;
-        te[5] -= zx;
-        te[7] -= zx;
+        te.e1 -= xy;
+        te.e3 -= xy;
+        te.e2 -= yz;
+        te.e6 -= yz;
+        te.e5 -= zx;
+        te.e7 -= zx;
         return this;
 
     },
@@ -1471,18 +1595,18 @@ Object.assign( Mat33.prototype, {
         var relZ = v.z;
 
         var te = this.elements;
-        te[0] -= m * ( relY * relY + relZ * relZ );
-        te[4] -= m * ( relX * relX + relZ * relZ );
-        te[8] -= m * ( relX * relX + relY * relY );
+        te.e0 -= m * ( relY * relY + relZ * relZ );
+        te.e4 -= m * ( relX * relX + relZ * relZ );
+        te.e8 -= m * ( relX * relX + relY * relY );
         var xy = m * relX * relY;
         var yz = m * relY * relZ;
         var zx = m * relZ * relX;
-        te[1] += xy;
-        te[3] += xy;
-        te[2] += yz;
-        te[6] += yz;
-        te[5] += zx;
-        te[7] += zx;
+        te.e1 += xy;
+        te.e3 += xy;
+        te.e2 += yz;
+        te.e6 += yz;
+        te.e5 += zx;
+        te.e7 += zx;
         return this;
 
     },
@@ -1493,9 +1617,9 @@ Object.assign( Mat33.prototype, {
 
         var te = this.elements;
 
-        te[ 0 ] *= s; te[ 3 ] *= s; te[ 6 ] *= s;
-        te[ 1 ] *= s; te[ 4 ] *= s; te[ 7 ] *= s;
-        te[ 2 ] *= s; te[ 5 ] *= s; te[ 8 ] *= s;
+        te.e0 *= s; te.e3 *= s; te.e6 *= s;
+        te.e1 *= s; te.e4 *= s; te.e7 *= s;
+        te.e2 *= s; te.e5 *= s; te.e8 *= s;
 
         return this;
 
@@ -1510,14 +1634,29 @@ Object.assign( Mat33.prototype, {
 
 
     clone: function () {
+        var c = pool$1.pop();
+        if( !c ) c = new Mat33();
+	c.copy( this );
+	return c;
+    },
 
-        return new Mat33().fromArray( this.elements );
-
+    delete : function() {
+        pool$1.push( this );
     },
 
     copy: function ( m ) {
-
-        for ( var i = 0; i < 9; i ++ ) this.elements[ i ] = m.elements[ i ];
+	let el2 = m.elements;
+	let el1 = this.elements;
+	el1.e0 = el2.e0;
+	el1.e1 = el2.e1;
+	el1.e2 = el2.e2;
+	el1.e3 = el2.e3;
+	el1.e4 = el2.e4;
+	el1.e5 = el2.e5;
+	el1.e6 = el2.e6;
+	el1.e7 = el2.e7;
+	el1.e8 = el2.e8;
+        //for ( var i = 0; i < 9; i ++ ) this.elements[ 'e'+i ] = m.elements[ 'e'+i ];
         return this;
 
     },
@@ -1525,9 +1664,9 @@ Object.assign( Mat33.prototype, {
     determinant: function () {
 
         var te = this.elements;
-        var a = te[ 0 ], b = te[ 1 ], c = te[ 2 ],
-            d = te[ 3 ], e = te[ 4 ], f = te[ 5 ],
-            g = te[ 6 ], h = te[ 7 ], i = te[ 8 ];
+        var a = te.e0, b = te.e1, c = te.e2,
+            d = te.e3, e = te.e4, f = te.e5,
+            g = te.e6, h = te.e7, i = te.e8;
 
         return a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g;
 
@@ -1539,7 +1678,7 @@ Object.assign( Mat33.prototype, {
 
         for( var i = 0; i < 9; i ++ ) {
 
-            this.elements[ i ] = array[ i + offset ];
+            this.elements[ 'e'+i ] = array[ i + offset ];
 
         }
 
@@ -1554,17 +1693,17 @@ Object.assign( Mat33.prototype, {
 
         var te = this.elements;
 
-        array[ offset ] = te[ 0 ];
-        array[ offset + 1 ] = te[ 1 ];
-        array[ offset + 2 ] = te[ 2 ];
+        array[ offset ] = te.e0;
+        array[ offset + 1 ] = te.e1;
+        array[ offset + 2 ] = te.e2;
 
-        array[ offset + 3 ] = te[ 3 ];
-        array[ offset + 4 ] = te[ 4 ];
-        array[ offset + 5 ] = te[ 5 ];
+        array[ offset + 3 ] = te.e3;
+        array[ offset + 4 ] = te.e4;
+        array[ offset + 5 ] = te.e5;
 
-        array[ offset + 6 ] = te[ 6 ];
-        array[ offset + 7 ] = te[ 7 ];
-        array[ offset + 8 ] = te[ 8 ];
+        array[ offset + 6 ] = te.e6;
+        array[ offset + 7 ] = te.e7;
+        array[ offset + 8 ] = te.e8;
 
         return array;
 
@@ -1582,11 +1721,11 @@ Object.assign( Mat33.prototype, {
 
 function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
 
-    this.elements = new Float32Array( 6 );
-    var te = this.elements;
+    this.aabb_elements = { e0:0,e1:0,e2:0,e3:0,e4:0,e6:0};// new Float32Array( 6 );
+    var te = this.aabb_elements;
 
-    te[0] = minX || 0; te[1] = minY || 0; te[2] = minZ || 0;
-    te[3] = maxX || 0; te[4] = maxY || 0; te[5] = maxZ || 0;
+    te.e0 = minX || 0; te.e1 = minY || 0; te.e2 = minZ || 0;
+    te.e3 = maxX || 0; te.e4 = maxY || 0; te.e5 = maxZ || 0;
 
 }
 
@@ -1596,50 +1735,50 @@ Object.assign( AABB.prototype, {
 
 	set: function(minX, maxX, minY, maxY, minZ, maxZ){
 
-		var te = this.elements;
-		te[0] = minX;
-		te[3] = maxX;
-		te[1] = minY;
-		te[4] = maxY;
-		te[2] = minZ;
-		te[5] = maxZ;
+		var te = this.aabb_elements;
+		te.e0 = minX;
+		te.e3 = maxX;
+		te.e1 = minY;
+		te.e4 = maxY;
+		te.e2 = minZ;
+		te.e5 = maxZ;
 		return this;
 	},
 
 	intersectTest: function ( aabb ) {
 
-		var te = this.elements;
-		var ue = aabb.elements;
-		return te[0] > ue[3] || te[1] > ue[4] || te[2] > ue[5] || te[3] < ue[0] || te[4] < ue[1] || te[5] < ue[2] ? true : false;
+		var te = this.aabb_elements;
+		var ue = aabb.aabb_elements;
+		return te.e0 > ue.e3 || te.e1 > ue.e4 || te.e2 > ue.e5 || te.e3 < ue.e0 || te.e4 < ue.e1 || te.e5 < ue.e2 ? true : false;
 
 	},
 
 	intersectTestTwo: function ( aabb ) {
 
-		var te = this.elements;
-		var ue = aabb.elements;
-		return te[0] < ue[0] || te[1] < ue[1] || te[2] < ue[2] || te[3] > ue[3] || te[4] > ue[4] || te[5] > ue[5] ? true : false;
+		var te = this.aabb_elements;
+		var ue = aabb.aabb_elements;
+		return te.e0 < ue.e0 || te.e1 < ue.e1 || te.e2 < ue.e2 || te.e3 > ue.e3 || te.e4 > ue.e4 || te.e5 > ue.e5 ? true : false;
 
 	},
 
 	clone: function () {
 
-		return new this.constructor().fromArray( this.elements );
+		return new this.constructor().fromArray( this.aabb_elements );
 
 	},
 
 	copy: function ( aabb, margin ) {
 
 		var m = margin || 0;
-		var me = aabb.elements;
-		this.set( me[ 0 ]-m, me[ 3 ]+m, me[ 1 ]-m, me[ 4 ]+m, me[ 2 ]-m, me[ 5 ]+m );
+		var me = aabb.aabb_elements;
+		this.set( me.e0-m, me.e3+m, me.e1-m, me.e4+m, me.e2-m, me.e5+m );
 		return this;
 
 	},
 
 	fromArray: function ( array ) {
 
-		this.elements.set( array );
+		this.aabb_elements.set( array );
 		return this;
 
 	},
@@ -1648,17 +1787,17 @@ Object.assign( AABB.prototype, {
 
 	combine: function( aabb1, aabb2 ) {
 
-		var a = aabb1.elements;
-		var b = aabb2.elements;
-		var te = this.elements;
+		var a = aabb1.aabb_elements;
+		var b = aabb2.aabb_elements;
+		var te = this.aabb_elements;
 
-		te[0] = a[0] < b[0] ? a[0] : b[0];
-		te[1] = a[1] < b[1] ? a[1] : b[1];
-		te[2] = a[2] < b[2] ? a[2] : b[2];
+		te.e0 = a.e0 < b.e0 ? a.e0 : b.e0;
+		te.e1 = a.e1 < b.e1 ? a.e1 : b.e1;
+		te.e2 = a.e2 < b.e2 ? a.e2 : b.e2;
 
-		te[3] = a[3] > b[3] ? a[3] : b[3];
-		te[4] = a[4] > b[4] ? a[4] : b[4];
-		te[5] = a[5] > b[5] ? a[5] : b[5];
+		te.e3 = a.e3 > b.e3 ? a.e3 : b.e3;
+		te.e4 = a.e4 > b.e4 ? a.e4 : b.e4;
+		te.e5 = a.e5 > b.e5 ? a.e5 : b.e5;
 
 		return this;
 
@@ -1669,10 +1808,10 @@ Object.assign( AABB.prototype, {
 
 	surfaceArea: function () {
 
-		var te = this.elements;
-		var a = te[3] - te[0];
-		var h = te[4] - te[1];
-		var d = te[5] - te[2];
+		var te = this.aabb_elements;
+		var a = te.e3 - te.e0;
+		var h = te.e4 - te.e1;
+		var d = te.e5 - te.e2;
 		return 2 * (a * (h + d) + h * d );
 
 	},
@@ -1682,8 +1821,8 @@ Object.assign( AABB.prototype, {
 
 	intersectsWithPoint:function(x,y,z){
 
-		var te = this.elements;
-		return x>=te[0] && x<=te[3] && y>=te[1] && y<=te[4] && z>=te[2] && z<=te[5];
+		var te = this.aabb_elements;
+		return x>=te.e0 && x<=te.e3 && y>=te.e1 && y<=te.e4 && z>=te.e2 && z<=te.e5;
 
 	},
 
@@ -1706,22 +1845,22 @@ Object.assign( AABB.prototype, {
 	},
 
 	expandByPoint: function(pt){
-		var te = this.elements;
+		var te = this.aabb_elements;
 		this.set(
-			_Math.min(te[ 0 ], pt.x), _Math.min(te[ 1 ], pt.y), _Math.min(te[ 2 ], pt.z),
-			_Math.max(te[ 3 ], pt.x), _Math.max(te[ 4 ], pt.y), _Math.max(te[ 5 ], pt.z)
+			_Math.min(te.e0, pt.x), _Math.min(te.e1, pt.y), _Math.min(te.e2, pt.z),
+			_Math.max(te.e3, pt.x), _Math.max(te.e4, pt.y), _Math.max(te.e5, pt.z)
 		);
 	},
 
 	expandByScalar: function(s){
 
-		var te = this.elements;
-		te[0] += -s;
-		te[1] += -s;
-		te[2] += -s;
-		te[3] += s;
-		te[4] += s;
-		te[5] += s;
+		var te = this.aabb_elements;
+		te.e0 += -s;
+		te.e1 += -s;
+		te.e2 += -s;
+		te.e3 += s;
+		te.e4 += s;
+		te.e5 += s;
 	}
 
 });
@@ -1835,8 +1974,10 @@ function Box ( config, Width, Height, Depth ) {
     this.halfHeight = Height * 0.5;
     this.halfDepth = Depth * 0.5;
 
-    this.dimentions = new Float32Array( 18 );
-    this.elements = new Float32Array( 24 );
+    this.dimentions = [];//new Float32Array( 18 );
+    for( var n = 0; n < 18; n++ ) this.dimentions.push(0.0);
+    this.box_elements = [];//new Float32Array( 24 );
+    for( var n = 0; n < 24; n++ ) this.box_elements.push(0.0);
 
 }
 
@@ -1862,29 +2003,29 @@ Box.prototype = Object.assign( Object.create( Shape.prototype ), {
 		var te = this.rotation.elements;
 		var di = this.dimentions;
 		// Width
-		di[0] = te[0];
-		di[1] = te[3];
-		di[2] = te[6];
+		di[0] = te.e0;
+		di[1] = te.e3;
+		di[2] = te.e6;
 		// Height
-		di[3] = te[1];
-		di[4] = te[4];
-		di[5] = te[7];
+		di[3] = te.e1;
+		di[4] = te.e4;
+		di[5] = te.e7;
 		// Depth
-		di[6] = te[2];
-		di[7] = te[5];
-		di[8] = te[8];
+		di[6] = te.e2;
+		di[7] = te.e5;
+		di[8] = te.e8;
 		// half Width
-		di[9] = te[0] * this.halfWidth;
-		di[10] = te[3] * this.halfWidth;
-		di[11] = te[6] * this.halfWidth;
+		di[9] = te.e0 * this.halfWidth;
+		di[10] = te.e3 * this.halfWidth;
+		di[11] = te.e6 * this.halfWidth;
 		// half Height
-		di[12] = te[1] * this.halfHeight;
-		di[13] = te[4] * this.halfHeight;
-		di[14] = te[7] * this.halfHeight;
+		di[12] = te.e1 * this.halfHeight;
+		di[13] = te.e4 * this.halfHeight;
+		di[14] = te.e7 * this.halfHeight;
 		// half Depth
-		di[15] = te[2] * this.halfDepth;
-		di[16] = te[5] * this.halfDepth;
-		di[17] = te[8] * this.halfDepth;
+		di[15] = te.e2 * this.halfDepth;
+		di[16] = te.e5 * this.halfDepth;
+		di[17] = te.e8 * this.halfDepth;
 
 		var wx = di[9];
 		var wy = di[10];
@@ -1900,7 +2041,7 @@ Box.prototype = Object.assign( Object.create( Shape.prototype ), {
 		var y = this.position.y;
 		var z = this.position.z;
 
-		var v = this.elements;
+		var v = this.box_elements;
 		//v1
 		v[0] = x + wx + hx + dx;
 		v[1] = y + wy + hy + dy;
@@ -2052,11 +2193,11 @@ Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
         var te = this.rotation.elements;
         var len, wx, hy, dz, xx, yy, zz, w, h, d, p;
 
-        xx = te[1] * te[1];
-        yy = te[4] * te[4];
-        zz = te[7] * te[7];
+        xx = te.e1 * te.e1;
+        yy = te.e4 * te.e4;
+        zz = te.e7 * te.e7;
 
-        this.normalDirection.set( te[1], te[4], te[7] );
+        this.normalDirection.set( te.e1, te.e4, te.e7 );
         this.halfDirection.scale( this.normalDirection, this.halfHeight );
 
         wx = 1 - xx;
@@ -2628,24 +2769,24 @@ Object.assign( LinearConstraint.prototype, {
         var ii1 = this.ii1.elements;
         var ii2 = this.ii2.elements;
 
-        this.ax1x = this.r1z*ii1[1]+-this.r1y*ii1[2];
-        this.ax1y = this.r1z*ii1[4]+-this.r1y*ii1[5];
-        this.ax1z = this.r1z*ii1[7]+-this.r1y*ii1[8];
-        this.ay1x = -this.r1z*ii1[0]+this.r1x*ii1[2];
-        this.ay1y = -this.r1z*ii1[3]+this.r1x*ii1[5];
-        this.ay1z = -this.r1z*ii1[6]+this.r1x*ii1[8];
-        this.az1x = this.r1y*ii1[0]+-this.r1x*ii1[1];
-        this.az1y = this.r1y*ii1[3]+-this.r1x*ii1[4];
-        this.az1z = this.r1y*ii1[6]+-this.r1x*ii1[7];
-        this.ax2x = this.r2z*ii2[1]+-this.r2y*ii2[2];
-        this.ax2y = this.r2z*ii2[4]+-this.r2y*ii2[5];
-        this.ax2z = this.r2z*ii2[7]+-this.r2y*ii2[8];
-        this.ay2x = -this.r2z*ii2[0]+this.r2x*ii2[2];
-        this.ay2y = -this.r2z*ii2[3]+this.r2x*ii2[5];
-        this.ay2z = -this.r2z*ii2[6]+this.r2x*ii2[8];
-        this.az2x = this.r2y*ii2[0]+-this.r2x*ii2[1];
-        this.az2y = this.r2y*ii2[3]+-this.r2x*ii2[4];
-        this.az2z = this.r2y*ii2[6]+-this.r2x*ii2[7];
+        this.ax1x = this.r1z*ii1.e1+-this.r1y*ii1.e2;
+        this.ax1y = this.r1z*ii1.e4+-this.r1y*ii1.e5;
+        this.ax1z = this.r1z*ii1.e7+-this.r1y*ii1.e8;
+        this.ay1x = -this.r1z*ii1.e0+this.r1x*ii1.e2;
+        this.ay1y = -this.r1z*ii1.e3+this.r1x*ii1.e5;
+        this.ay1z = -this.r1z*ii1.e6+this.r1x*ii1.e8;
+        this.az1x = this.r1y*ii1.e0+-this.r1x*ii1.e1;
+        this.az1y = this.r1y*ii1.e3+-this.r1x*ii1.e4;
+        this.az1z = this.r1y*ii1.e6+-this.r1x*ii1.e7;
+        this.ax2x = this.r2z*ii2.e1+-this.r2y*ii2.e2;
+        this.ax2y = this.r2z*ii2.e4+-this.r2y*ii2.e5;
+        this.ax2z = this.r2z*ii2.e7+-this.r2y*ii2.e8;
+        this.ay2x = -this.r2z*ii2.e0+this.r2x*ii2.e2;
+        this.ay2y = -this.r2z*ii2.e3+this.r2x*ii2.e5;
+        this.ay2z = -this.r2z*ii2.e6+this.r2x*ii2.e8;
+        this.az2x = this.r2y*ii2.e0+-this.r2x*ii2.e1;
+        this.az2y = this.r2y*ii2.e3+-this.r2x*ii2.e4;
+        this.az2z = this.r2y*ii2.e6+-this.r2x*ii2.e7;
 
         // calculate point-to-point mass matrix
         // from impulse equation
@@ -2669,31 +2810,31 @@ Object.assign( LinearConstraint.prototype, {
         var kk = new Mat33().set( rxx, 0, 0,  0, rxx, 0,  0, 0, rxx );
         var k = kk.elements;
 
-        k[0] += ii1[4]*this.r1z*this.r1z-(ii1[7]+ii1[5])*this.r1y*this.r1z+ii1[8]*this.r1y*this.r1y;
-        k[1] += (ii1[6]*this.r1y+ii1[5]*this.r1x)*this.r1z-ii1[3]*this.r1z*this.r1z-ii1[8]*this.r1x*this.r1y;
-        k[2] += (ii1[3]*this.r1y-ii1[4]*this.r1x)*this.r1z-ii1[6]*this.r1y*this.r1y+ii1[7]*this.r1x*this.r1y;
-        k[3] += (ii1[2]*this.r1y+ii1[7]*this.r1x)*this.r1z-ii1[1]*this.r1z*this.r1z-ii1[8]*this.r1x*this.r1y;
-        k[4] += ii1[0]*this.r1z*this.r1z-(ii1[6]+ii1[2])*this.r1x*this.r1z+ii1[8]*this.r1x*this.r1x;
-        k[5] += (ii1[1]*this.r1x-ii1[0]*this.r1y)*this.r1z-ii1[7]*this.r1x*this.r1x+ii1[6]*this.r1x*this.r1y;
-        k[6] += (ii1[1]*this.r1y-ii1[4]*this.r1x)*this.r1z-ii1[2]*this.r1y*this.r1y+ii1[5]*this.r1x*this.r1y;
-        k[7] += (ii1[3]*this.r1x-ii1[0]*this.r1y)*this.r1z-ii1[5]*this.r1x*this.r1x+ii1[2]*this.r1x*this.r1y;
-        k[8] += ii1[0]*this.r1y*this.r1y-(ii1[3]+ii1[1])*this.r1x*this.r1y+ii1[4]*this.r1x*this.r1x;
+        k.e0 += ii1.e4*this.r1z*this.r1z-(ii1.e7+ii1.e5)*this.r1y*this.r1z+ii1.e8*this.r1y*this.r1y;
+        k.e1 += (ii1.e6*this.r1y+ii1.e5*this.r1x)*this.r1z-ii1.e3*this.r1z*this.r1z-ii1.e8*this.r1x*this.r1y;
+        k.e2 += (ii1.e3*this.r1y-ii1.e4*this.r1x)*this.r1z-ii1.e6*this.r1y*this.r1y+ii1.e7*this.r1x*this.r1y;
+        k.e3 += (ii1.e2*this.r1y+ii1.e7*this.r1x)*this.r1z-ii1.e1*this.r1z*this.r1z-ii1.e8*this.r1x*this.r1y;
+        k.e4 += ii1.e0*this.r1z*this.r1z-(ii1.e6+ii1.e2)*this.r1x*this.r1z+ii1.e8*this.r1x*this.r1x;
+        k.e5 += (ii1.e1*this.r1x-ii1.e0*this.r1y)*this.r1z-ii1.e7*this.r1x*this.r1x+ii1.e6*this.r1x*this.r1y;
+        k.e6 += (ii1.e1*this.r1y-ii1.e4*this.r1x)*this.r1z-ii1.e2*this.r1y*this.r1y+ii1.e5*this.r1x*this.r1y;
+        k.e7 += (ii1.e3*this.r1x-ii1.e0*this.r1y)*this.r1z-ii1.e5*this.r1x*this.r1x+ii1.e2*this.r1x*this.r1y;
+        k.e8 += ii1.e0*this.r1y*this.r1y-(ii1.e3+ii1.e1)*this.r1x*this.r1y+ii1.e4*this.r1x*this.r1x;
 
-        k[0] += ii2[4]*this.r2z*this.r2z-(ii2[7]+ii2[5])*this.r2y*this.r2z+ii2[8]*this.r2y*this.r2y;
-        k[1] += (ii2[6]*this.r2y+ii2[5]*this.r2x)*this.r2z-ii2[3]*this.r2z*this.r2z-ii2[8]*this.r2x*this.r2y;
-        k[2] += (ii2[3]*this.r2y-ii2[4]*this.r2x)*this.r2z-ii2[6]*this.r2y*this.r2y+ii2[7]*this.r2x*this.r2y;
-        k[3] += (ii2[2]*this.r2y+ii2[7]*this.r2x)*this.r2z-ii2[1]*this.r2z*this.r2z-ii2[8]*this.r2x*this.r2y;
-        k[4] += ii2[0]*this.r2z*this.r2z-(ii2[6]+ii2[2])*this.r2x*this.r2z+ii2[8]*this.r2x*this.r2x;
-        k[5] += (ii2[1]*this.r2x-ii2[0]*this.r2y)*this.r2z-ii2[7]*this.r2x*this.r2x+ii2[6]*this.r2x*this.r2y;
-        k[6] += (ii2[1]*this.r2y-ii2[4]*this.r2x)*this.r2z-ii2[2]*this.r2y*this.r2y+ii2[5]*this.r2x*this.r2y;
-        k[7] += (ii2[3]*this.r2x-ii2[0]*this.r2y)*this.r2z-ii2[5]*this.r2x*this.r2x+ii2[2]*this.r2x*this.r2y;
-        k[8] += ii2[0]*this.r2y*this.r2y-(ii2[3]+ii2[1])*this.r2x*this.r2y+ii2[4]*this.r2x*this.r2x;
+        k.e0 += ii2.e4*this.r2z*this.r2z-(ii2.e7+ii2.e5)*this.r2y*this.r2z+ii2.e8*this.r2y*this.r2y;
+        k.e1 += (ii2.e6*this.r2y+ii2.e5*this.r2x)*this.r2z-ii2.e3*this.r2z*this.r2z-ii2.e8*this.r2x*this.r2y;
+        k.e2 += (ii2.e3*this.r2y-ii2.e4*this.r2x)*this.r2z-ii2.e6*this.r2y*this.r2y+ii2.e7*this.r2x*this.r2y;
+        k.e3 += (ii2.e2*this.r2y+ii2.e7*this.r2x)*this.r2z-ii2.e1*this.r2z*this.r2z-ii2.e8*this.r2x*this.r2y;
+        k.e4 += ii2.e0*this.r2z*this.r2z-(ii2.e6+ii2.e2)*this.r2x*this.r2z+ii2.e8*this.r2x*this.r2x;
+        k.e5 += (ii2.e1*this.r2x-ii2.e0*this.r2y)*this.r2z-ii2.e7*this.r2x*this.r2x+ii2.e6*this.r2x*this.r2y;
+        k.e6 += (ii2.e1*this.r2y-ii2.e4*this.r2x)*this.r2z-ii2.e2*this.r2y*this.r2y+ii2.e5*this.r2x*this.r2y;
+        k.e7 += (ii2.e3*this.r2x-ii2.e0*this.r2y)*this.r2z-ii2.e5*this.r2x*this.r2x+ii2.e2*this.r2x*this.r2y;
+        k.e8 += ii2.e0*this.r2y*this.r2y-(ii2.e3+ii2.e1)*this.r2x*this.r2y+ii2.e4*this.r2x*this.r2x;
 
-        var inv=1/( k[0]*(k[4]*k[8]-k[7]*k[5]) + k[3]*(k[7]*k[2]-k[1]*k[8]) + k[6]*(k[1]*k[5]-k[4]*k[2]) );
+        var inv=1/( k.e0*(k.e4*k.e8-k.e7*k.e5) + k.e3*(k.e7*k.e2-k.e1*k.e8) + k.e6*(k.e1*k.e5-k.e4*k.e2) );
         this.dd = new Mat33().set(
-            k[4]*k[8]-k[5]*k[7], k[2]*k[7]-k[1]*k[8], k[1]*k[5]-k[2]*k[4],
-            k[5]*k[6]-k[3]*k[8], k[0]*k[8]-k[2]*k[6], k[2]*k[3]-k[0]*k[5],
-            k[3]*k[7]-k[4]*k[6], k[1]*k[6]-k[0]*k[7], k[0]*k[4]-k[1]*k[3]
+            k.e4*k.e8-k.e5*k.e7, k.e2*k.e7-k.e1*k.e8, k.e1*k.e5-k.e2*k.e4,
+            k.e5*k.e6-k.e3*k.e8, k.e0*k.e8-k.e2*k.e6, k.e2*k.e3-k.e0*k.e5,
+            k.e3*k.e7-k.e4*k.e6, k.e1*k.e6-k.e0*k.e7, k.e0*k.e4-k.e1*k.e3
         ).scaleEqual( inv );
 
         this.velx = this.p2.x-this.p1.x;
@@ -2735,9 +2876,9 @@ Object.assign( LinearConstraint.prototype, {
         var rvx = this.l2.x-this.l1.x+this.a2.y*this.r2z-this.a2.z*this.r2y-this.a1.y*this.r1z+this.a1.z*this.r1y-this.velx;
         var rvy = this.l2.y-this.l1.y+this.a2.z*this.r2x-this.a2.x*this.r2z-this.a1.z*this.r1x+this.a1.x*this.r1z-this.vely;
         var rvz = this.l2.z-this.l1.z+this.a2.x*this.r2y-this.a2.y*this.r2x-this.a1.x*this.r1y+this.a1.y*this.r1x-this.velz;
-        var nimpx = rvx*d[0]+rvy*d[1]+rvz*d[2];
-        var nimpy = rvx*d[3]+rvy*d[4]+rvz*d[5];
-        var nimpz = rvx*d[6]+rvy*d[7]+rvz*d[8];
+        var nimpx = rvx*d.e0+rvy*d.e1+rvz*d.e2;
+        var nimpy = rvx*d.e3+rvy*d.e4+rvz*d.e5;
+        var nimpz = rvx*d.e6+rvy*d.e7+rvz*d.e8;
         this.impx += nimpx;
         this.impy += nimpy;
         this.impz += nimpz;
@@ -2754,6 +2895,8 @@ Object.assign( LinearConstraint.prototype, {
         this.a2.y -= nimpx*this.ax2y+nimpy*this.ay2y+nimpz*this.az2y;
         this.a2.z -= nimpx*this.ax2z+nimpy*this.ay2z+nimpz*this.az2z;
 
+        this.ii1.delete();
+        this.ii2.delete();
     }
 
 } );
@@ -2919,25 +3062,25 @@ Object.assign( Rotational3Constraint.prototype, {
 
         var ti1 = this.i1.elements;
         var ti2 = this.i2.elements;
-        this.i1e00=ti1[0];
-        this.i1e01=ti1[1];
-        this.i1e02=ti1[2];
-        this.i1e10=ti1[3];
-        this.i1e11=ti1[4];
-        this.i1e12=ti1[5];
-        this.i1e20=ti1[6];
-        this.i1e21=ti1[7];
-        this.i1e22=ti1[8];
+        this.i1e00=ti1.e0;
+        this.i1e01=ti1.e1;
+        this.i1e02=ti1.e2;
+        this.i1e10=ti1.e3;
+        this.i1e11=ti1.e4;
+        this.i1e12=ti1.e5;
+        this.i1e20=ti1.e6;
+        this.i1e21=ti1.e7;
+        this.i1e22=ti1.e8;
 
-        this.i2e00=ti2[0];
-        this.i2e01=ti2[1];
-        this.i2e02=ti2[2];
-        this.i2e10=ti2[3];
-        this.i2e11=ti2[4];
-        this.i2e12=ti2[5];
-        this.i2e20=ti2[6];
-        this.i2e21=ti2[7];
-        this.i2e22=ti2[8];
+        this.i2e00=ti2.e0;
+        this.i2e01=ti2.e1;
+        this.i2e02=ti2.e2;
+        this.i2e10=ti2.e3;
+        this.i2e11=ti2.e4;
+        this.i2e12=ti2.e5;
+        this.i2e20=ti2.e6;
+        this.i2e21=ti2.e7;
+        this.i2e22=ti2.e8;
 
         var frequency1=this.limitMotor1.frequency;
         var frequency2=this.limitMotor2.frequency;
@@ -3599,25 +3742,25 @@ Object.assign( TranslationalConstraint.prototype, {
 
         var ti1 = this.i1.elements;
         var ti2 = this.i2.elements;
-        this.i1e00=ti1[0];
-        this.i1e01=ti1[1];
-        this.i1e02=ti1[2];
-        this.i1e10=ti1[3];
-        this.i1e11=ti1[4];
-        this.i1e12=ti1[5];
-        this.i1e20=ti1[6];
-        this.i1e21=ti1[7];
-        this.i1e22=ti1[8];
+        this.i1e00=ti1.e0;
+        this.i1e01=ti1.e1;
+        this.i1e02=ti1.e2;
+        this.i1e10=ti1.e3;
+        this.i1e11=ti1.e4;
+        this.i1e12=ti1.e5;
+        this.i1e20=ti1.e6;
+        this.i1e21=ti1.e7;
+        this.i1e22=ti1.e8;
 
-        this.i2e00=ti2[0];
-        this.i2e01=ti2[1];
-        this.i2e02=ti2[2];
-        this.i2e10=ti2[3];
-        this.i2e11=ti2[4];
-        this.i2e12=ti2[5];
-        this.i2e20=ti2[6];
-        this.i2e21=ti2[7];
-        this.i2e22=ti2[8];
+        this.i2e00=ti2.e0;
+        this.i2e01=ti2.e1;
+        this.i2e02=ti2.e2;
+        this.i2e10=ti2.e3;
+        this.i2e11=ti2.e4;
+        this.i2e12=ti2.e5;
+        this.i2e20=ti2.e6;
+        this.i2e21=ti2.e7;
+        this.i2e22=ti2.e8;
 
         var dx=this.p2.x-this.p1.x;
         var dy=this.p2.y-this.p1.y;
@@ -3879,12 +4022,12 @@ Object.assign( AngularConstraint.prototype, {
         this.ii2 = this.i2.clone();
 
         v = new Mat33().add(this.ii1, this.ii2).elements;
-        inv = 1/( v[0]*(v[4]*v[8]-v[7]*v[5])  +  v[3]*(v[7]*v[2]-v[1]*v[8])  +  v[6]*(v[1]*v[5]-v[4]*v[2]) );
-        this.dd = new Mat33().set(
-            v[4]*v[8]-v[5]*v[7], v[2]*v[7]-v[1]*v[8], v[1]*v[5]-v[2]*v[4],
-            v[5]*v[6]-v[3]*v[8], v[0]*v[8]-v[2]*v[6], v[2]*v[3]-v[0]*v[5],
-            v[3]*v[7]-v[4]*v[6], v[1]*v[6]-v[0]*v[7], v[0]*v[4]-v[1]*v[3]
-        ).multiplyScalar( inv );
+        inv = 1/( v.e0*(v.e4*v.e8-v.e7*v.e5)  +  v.e3*(v.e7*v.e2-v.e1*v.e8)  +  v.e6*(v.e1*v.e5-v.e4*v.e2) );
+        this.dd = Mat33.new().set(
+            (v.e4*v.e8-v.e5*v.e7)*inv, (v.e2*v.e7-v.e1*v.e8)*inv, (v.e1*v.e5-v.e2*v.e4)*inv,
+            (v.e5*v.e6-v.e3*v.e8)*inv, (v.e0*v.e8-v.e2*v.e6)*inv, (v.e2*v.e3-v.e0*v.e5)*inv,
+            (v.e3*v.e7-v.e4*v.e6)*inv, (v.e1*v.e6-v.e0*v.e7)*inv, (v.e0*v.e4-v.e1*v.e3)*inv
+        );//.multiplyScalar( inv );
         
         this.relativeOrientation.invert( this.b1.orientation ).multiply( this.targetOrientation ).multiply( this.b2.orientation );
 
@@ -3910,8 +4053,8 @@ Object.assign( AngularConstraint.prototype, {
     },
 
     solve: function () {
-
-        var r = this.a2.clone().sub( this.a1 ).sub( this.vel );
+        var tmp;
+        var r = ( tmp = this.a2.clone() ).sub( this.a1 ).sub( this.vel );
 
         this.rn0.copy( r ).applyMatrix3( this.dd, true );
         this.rn1.copy( this.rn0 ).applyMatrix3( this.ii1, true );
@@ -3921,6 +4064,10 @@ Object.assign( AngularConstraint.prototype, {
         this.a1.add( this.rn1 );
         this.a2.sub( this.rn2 );
 
+        this.ii1.delete();
+        this.ii2.delete();
+        tmp.delete();
+	this.dd.delete();
     }
 
 } );
@@ -4130,25 +4277,25 @@ Object.assign( Translational3Constraint.prototype, {
 
         var ti1 = this.i1.elements;
         var ti2 = this.i2.elements;
-        this.i1e00=ti1[0];
-        this.i1e01=ti1[1];
-        this.i1e02=ti1[2];
-        this.i1e10=ti1[3];
-        this.i1e11=ti1[4];
-        this.i1e12=ti1[5];
-        this.i1e20=ti1[6];
-        this.i1e21=ti1[7];
-        this.i1e22=ti1[8];
+        this.i1e00=ti1.e0;
+        this.i1e01=ti1.e1;
+        this.i1e02=ti1.e2;
+        this.i1e10=ti1.e3;
+        this.i1e11=ti1.e4;
+        this.i1e12=ti1.e5;
+        this.i1e20=ti1.e6;
+        this.i1e21=ti1.e7;
+        this.i1e22=ti1.e8;
 
-        this.i2e00=ti2[0];
-        this.i2e01=ti2[1];
-        this.i2e02=ti2[2];
-        this.i2e10=ti2[3];
-        this.i2e11=ti2[4];
-        this.i2e12=ti2[5];
-        this.i2e20=ti2[6];
-        this.i2e21=ti2[7];
-        this.i2e22=ti2[8];
+        this.i2e00=ti2.e0;
+        this.i2e01=ti2.e1;
+        this.i2e02=ti2.e2;
+        this.i2e10=ti2.e3;
+        this.i2e11=ti2.e4;
+        this.i2e12=ti2.e5;
+        this.i2e20=ti2.e6;
+        this.i2e21=ti2.e7;
+        this.i2e22=ti2.e8;
 
         var dx=this.p2.x-this.p1.x;
         var dy=this.p2.y-this.p1.y;
@@ -4740,7 +4887,7 @@ function SliderJoint( config, lowerTranslation, upperTranslation ){
     this.bin = new Vec3();
 
     // The limit and motor for the rotation
-    this.rotationalLimitMotor = new LimitMotor( this.nor, false );
+    this.rotationalLimitMotor = new LimitMotor( this.nor, true );
     this.r3 = new Rotational3Constraint( this, this.rotationalLimitMotor, new LimitMotor( this.tan, true ), new LimitMotor( this.bin, true ) );
 
     // The limit and motor for the translation.
@@ -5176,6 +5323,10 @@ function ContactConstraint ( manifold ){
     this.p2=null;
     this.lv1=null;
     this.lv2=null;
+    this.clv1=null;
+    this.clv2=null;
+    this.ilv1=null;
+    this.ilv2=null;
     this.av1=null;
     this.av2=null;
     this.i1=null;
@@ -5217,8 +5368,12 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
         this.p1=this.body1.position;
         this.p2=this.body2.position;
         this.lv1=this.body1.linearVelocity;
+        this.clv1=this.body1.continuousLinearVelocity;
+        this.ilv1=this.body1.initialLinearVelocity;
         this.av1=this.body1.angularVelocity;
         this.lv2=this.body2.linearVelocity;
+        this.clv2=this.body2.continuousLinearVelocity;
+        this.ilv2=this.body2.initialLinearVelocity;
         this.av2=this.body2.angularVelocity;
         this.i1=this.body1.inverseInertia;
         this.i2=this.body2.inverseInertia;
@@ -5232,6 +5387,10 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
         this.p2=null;
         this.lv1=null;
         this.lv2=null;
+        this.clv1=null;
+        this.clv2=null;
+        this.ilv1=null;
+        this.ilv2=null;
         this.av1=null;
         this.av2=null;
         this.i1=null;
@@ -5269,9 +5428,12 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
 
             this.tmp.set(
 
-                ( this.lv2.x + this.tmpC2.x ) - ( this.lv1.x + this.tmpC1.x ),
-                ( this.lv2.y + this.tmpC2.y ) - ( this.lv1.y + this.tmpC1.y ),
-                ( this.lv2.z + this.tmpC2.z ) - ( this.lv1.z + this.tmpC1.z )
+                //( this.lv2.x + this.tmpC2.x ) - ( this.lv1.x + this.tmpC1.x ),
+                //( this.lv2.y + this.tmpC2.y ) - ( this.lv1.y + this.tmpC1.y ),
+                //( this.lv2.z + this.tmpC2.z ) - ( this.lv1.z + this.tmpC1.z )
+                ( this.clv2.x + this.lv2.x + this.tmpC2.x ) - ( this.clv1.x + this.lv1.x + this.tmpC1.x ),
+                ( this.clv2.y + this.lv2.y + this.tmpC2.y ) - ( this.clv1.y + this.lv1.y + this.tmpC1.y ),
+                ( this.clv2.z + this.lv2.z + this.tmpC2.z ) - ( this.clv1.z + this.lv1.z + this.tmpC1.z )
 
             );
 
@@ -5382,7 +5544,9 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
     solve: function(){
 
         this.tmplv1.copy( this.lv1 );
+	this.tmplv1.addEqual( this.clv1 );
         this.tmplv2.copy( this.lv2 );
+	this.tmplv2.addEqual( this.clv2 );
         this.tmpav1.copy( this.av1 );
         this.tmpav2.copy( this.av2 );
 
@@ -5483,7 +5647,13 @@ ContactConstraint.prototype = Object.assign( Object.create( Constraint.prototype
         }
 
         this.lv1.copy( this.tmplv1 );
+	this.clv1.set( 0,0,0 );
+	this.ilv1.set( 0,0,0 );
+	//this.lv1.subEqual( this.clv1 );
         this.lv2.copy( this.tmplv2 );
+	this.clv2.set( 0,0,0 );
+	this.ilv2.set( 0,0,0 );
+	//this.lv2.subEqual( this.clv2 );
         this.av1.copy( this.tmpav1 );
         this.av2.copy( this.tmpav2 );
 
@@ -5832,8 +6002,12 @@ function RigidBody ( Position, Rotation ) {
 
 
     // Is the translational velocity.
+    this.initialLinearVelocity = new Vec3();
+    this.continuousLinearVelocity = new Vec3();
     this.linearVelocity = new Vec3();
     // Is the angular velocity.
+    this.initialAngularVelocity = new Vec3();
+    this.continuousAngularVelocity = new Vec3();
     this.angularVelocity = new Vec3();
 
     //--------------------------------------------
@@ -5992,8 +6166,8 @@ Object.assign( RigidBody.prototype, {
         this.localInertia.set(0,0,0,0,0,0,0,0,0);
 
 
-        var tmpM = new Mat33();
-        var tmpV = new Vec3();
+        var tmpM = Mat33.new();
+        var tmpV = Vec3.new();
 
         for( var shape = this.shapes; shape !== null; shape = shape.next ){
 
@@ -6008,6 +6182,8 @@ Object.assign( RigidBody.prototype, {
             this.localInertia.addOffset( shapeMass, shape.relativePosition );
 
         }
+
+        tmpM.delete();
 
         this.inverseMass = 1 / this.mass;
         tmpV.scaleEqual( this.inverseMass );
@@ -6024,6 +6200,7 @@ Object.assign( RigidBody.prototype, {
         }
 
         this.inverseLocalInertia.invert( this.localInertia );
+        tmpV.delete();
 
         //}
 
@@ -6070,7 +6247,9 @@ Object.assign( RigidBody.prototype, {
         if( !this.allowSleep || this.sleeping ) return;
 
         this.linearVelocity.set(0,0,0);
+        this.continuousLinearVelocity.set(0,0,0);
         this.angularVelocity.set(0,0,0);
+        this.continuousAngularVelocity.set(0,0,0);
         this.sleepPosition.copy( this.position );
         this.sleepOrientation.copy( this.orientation );
 
@@ -6128,7 +6307,7 @@ Object.assign( RigidBody.prototype, {
             case BODY_DYNAMIC:
 
                 if( this.isKinematic ){
-
+                    console.log( "kinematic" );
                     this.linearVelocity.set(0,0,0);
                     this.angularVelocity.set(0,0,0);
 
@@ -6147,10 +6326,12 @@ Object.assign( RigidBody.prototype, {
                     this.controlRot = false;
 
                 }
-
                 this.position.addScaledVector(this.linearVelocity, timeStep);
+                this.position.addAveragedScaledVector(this.continuousLinearVelocity, this.initialLinearVelocity, timeStep);
                 this.orientation.addTime(this.angularVelocity, timeStep);
-
+                this.orientation.addAveragedTime(this.continuousAngularVelocity, this.initialAngularVelocity, timeStep);
+		if( this.position.y < 0 )
+			debugger;
                 this.updateMesh();
 
             break;
@@ -6196,8 +6377,15 @@ Object.assign( RigidBody.prototype, {
 
     applyImpulse: function(position, force){
         this.linearVelocity.addScaledVector(force, this.inverseMass);
-        var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
+        var rel = Vec3.clone( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
         this.angularVelocity.add( rel );
+        rel.delete();
+    },
+
+    applyForce: function(position, force){
+        this.continuousLinearVelocity.addScaledVector(force, this.inverseMass);
+        var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
+        this.continousAngularVelocity.add( rel );
     },
 
 
@@ -6230,6 +6418,8 @@ Object.assign( RigidBody.prototype, {
 
     resetPosition:function(x,y,z){
 
+        this.continuousLinearVelocity.set( 0, 0, 0 );
+        this.initialLinearVelocity.set( 0, 0, 0 );
         this.linearVelocity.set( 0, 0, 0 );
         this.angularVelocity.set( 0, 0, 0 );
         this.position.set( x, y, z ).multiplyScalar( this.invScale );
@@ -6559,9 +6749,10 @@ function SAPAxis (){
 
     this.numElements = 0;
     this.bufferSize = 256;
-    this.elements = [];
-    this.elements.length = this.bufferSize;
-    this.stack = new Float32Array( 64 );
+    this.sap_elements = [];
+    this.sap_elements.length = this.bufferSize;
+    this.stack = [];//new Float32Array( 64 );
+    for( var n = 0; n < 64; n++ ) this.stack.push(0);
 
 }
 
@@ -6578,11 +6769,11 @@ Object.assign( SAPAxis.prototype, {
             var i = this.numElements;
             while(i--){
             //for(var i=0, l=this.numElements; i<l; i++){
-                newElements[i] = this.elements[i];
+                newElements[i] = this.sap_elements[i];
             }
         }
-        this.elements[this.numElements++] = min;
-        this.elements[this.numElements++] = max;
+        this.sap_elements[this.numElements++] = min;
+        this.sap_elements[this.numElements++] = max;
 
     },
 
@@ -6591,7 +6782,7 @@ Object.assign( SAPAxis.prototype, {
         var minIndex=-1;
         var maxIndex=-1;
         for(var i=0, l=this.numElements; i<l; i++){
-            var e=this.elements[i];
+            var e=this.sap_elements[i];
             if(e==min||e==max){
                 if(minIndex==-1){
                     minIndex=i;
@@ -6602,14 +6793,14 @@ Object.assign( SAPAxis.prototype, {
             }
         }
         for(i = minIndex+1, l = maxIndex; i < l; i++){
-            this.elements[i-1] = this.elements[i];
+            this.sap_elements[i-1] = this.sap_elements[i];
         }
         for(i = maxIndex+1, l = this.numElements; i < l; i++){
-            this.elements[i-2] = this.elements[i];
+            this.sap_elements[i-2] = this.sap_elements[i];
         }
 
-        this.elements[--this.numElements] = null;
-        this.elements[--this.numElements] = null;
+        this.sap_elements[--this.numElements] = null;
+        this.sap_elements[--this.numElements] = null;
 
     },
 
@@ -6622,7 +6813,7 @@ Object.assign( SAPAxis.prototype, {
         count = 0;
 
         var giveup = false;
-        var elements = this.elements;
+        var elements = this.sap_elements;
         for( var i = 1, l = this.numElements; i < l; i++){ // try insertion sort
             var tmp=elements[i];
             var pivot=tmp.value;
@@ -6707,7 +6898,7 @@ Object.assign( SAPAxis.prototype, {
         var num = 1;
         var sum = 0;
         for(var i = 1, l = this.numElements; i<l; i++){
-            if(this.elements[i].max){
+            if(this.sap_elements[i].max){
                 num--;
             }else{
                 sum += num;
@@ -6758,32 +6949,32 @@ function SAPProxy ( sap, shape ){
     // Type of the axis to which the proxy belongs to. [0:none, 1:dynamic, 2:static]
     this.belongsTo = 0;
     // The maximum elements on each axis.
-    this.max = [];
+    this.max = { e0: null, e1: null, e2: null };
     // The minimum elements on each axis.
-    this.min = [];
+    this.min = { e0: null, e1: null, e2: null };
     
     this.sap = sap;
-    this.min[0] = new SAPElement( this, false );
-    this.max[0] = new SAPElement( this, true );
-    this.min[1] = new SAPElement( this, false );
-    this.max[1] = new SAPElement( this, true );
-    this.min[2] = new SAPElement( this, false );
-    this.max[2] = new SAPElement( this, true );
-    this.max[0].pair = this.min[0];
-    this.max[1].pair = this.min[1];
-    this.max[2].pair = this.min[2];
-    this.min[0].min1 = this.min[1];
-    this.min[0].max1 = this.max[1];
-    this.min[0].min2 = this.min[2];
-    this.min[0].max2 = this.max[2];
-    this.min[1].min1 = this.min[0];
-    this.min[1].max1 = this.max[0];
-    this.min[1].min2 = this.min[2];
-    this.min[1].max2 = this.max[2];
-    this.min[2].min1 = this.min[0];
-    this.min[2].max1 = this.max[0];
-    this.min[2].min2 = this.min[1];
-    this.min[2].max2 = this.max[1];
+    this.min.e0 = new SAPElement( this, false );
+    this.max.e0 = new SAPElement( this, true );
+    this.min.e1 = new SAPElement( this, false );
+    this.max.e1 = new SAPElement( this, true );
+    this.min.e2 = new SAPElement( this, false );
+    this.max.e2 = new SAPElement( this, true );
+    this.max.e0.pair = this.min.e0;
+    this.max.e1.pair = this.min.e1;
+    this.max.e2.pair = this.min.e2;
+    this.min.e0.min1 = this.min.e1;
+    this.min.e0.max1 = this.max.e1;
+    this.min.e0.min2 = this.min.e2;
+    this.min.e0.max2 = this.max.e2;
+    this.min.e1.min1 = this.min.e0;
+    this.min.e1.max1 = this.max.e0;
+    this.min.e1.min2 = this.min.e2;
+    this.min.e1.max2 = this.max.e2;
+    this.min.e2.min1 = this.min.e0;
+    this.min.e2.max1 = this.max.e0;
+    this.min.e2.min2 = this.min.e1;
+    this.min.e2.max2 = this.max.e1;
 
 }
 
@@ -6802,13 +6993,13 @@ SAPProxy.prototype = Object.assign( Object.create( Proxy.prototype ), {
 
     update: function () {
 
-        var te = this.aabb.elements;
-        this.min[0].value = te[0];
-        this.min[1].value = te[1];
-        this.min[2].value = te[2];
-        this.max[0].value = te[3];
-        this.max[1].value = te[4];
-        this.max[2].value = te[5];
+        var te = this.aabb.aabb_elements;
+        this.min.e0.value = te.e0;
+        this.min.e1.value = te.e1;
+        this.min.e2.value = te.e2;
+        this.max.e0.value = te.e3;
+        this.max.e1.value = te.e4;
+        this.max.e2.value = te.e5;
 
         if( this.belongsTo == 1 && !this.isDynamic() || this.belongsTo == 2 && this.isDynamic() ){
             this.sap.removeProxy(this);
@@ -6864,15 +7055,15 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
 
         var p = proxy;
         if(p.isDynamic()){
-            this.axesD[0].addElements( p.min[0], p.max[0] );
-            this.axesD[1].addElements( p.min[1], p.max[1] );
-            this.axesD[2].addElements( p.min[2], p.max[2] );
+            this.axesD[0].addElements( p.min.e0, p.max.e0 );
+            this.axesD[1].addElements( p.min.e1, p.max.e1 );
+            this.axesD[2].addElements( p.min.e2, p.max.e2 );
             p.belongsTo = 1;
             this.numElementsD += 2;
         } else {
-            this.axesS[0].addElements( p.min[0], p.max[0] );
-            this.axesS[1].addElements( p.min[1], p.max[1] );
-            this.axesS[2].addElements( p.min[2], p.max[2] );
+            this.axesS[0].addElements( p.min.e0, p.max.e0 );
+            this.axesS[1].addElements( p.min.e1, p.max.e1 );
+            this.axesS[2].addElements( p.min.e2, p.max.e2 );
             p.belongsTo = 2;
             this.numElementsS += 2;
         }
@@ -6885,28 +7076,28 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
         if ( p.belongsTo == 0 ) return;
 
         /*else if ( p.belongsTo == 1 ) {
-            this.axesD[0].removeElements( p.min[0], p.max[0] );
-            this.axesD[1].removeElements( p.min[1], p.max[1] );
-            this.axesD[2].removeElements( p.min[2], p.max[2] );
+            this.axesD[0].removeElements( p.min.e0, p.max.e0 );
+            this.axesD[1].removeElements( p.min.e1, p.max.e1 );
+            this.axesD[2].removeElements( p.min.e2, p.max.e2 );
             this.numElementsD -= 2;
         } else if ( p.belongsTo == 2 ) {
-            this.axesS[0].removeElements( p.min[0], p.max[0] );
-            this.axesS[1].removeElements( p.min[1], p.max[1] );
-            this.axesS[2].removeElements( p.min[2], p.max[2] );
+            this.axesS[0].removeElements( p.min.e0, p.max.e0 );
+            this.axesS[1].removeElements( p.min.e1, p.max.e1 );
+            this.axesS[2].removeElements( p.min.e2, p.max.e2 );
             this.numElementsS -= 2;
         }*/
 
         switch( p.belongsTo ){
             case 1:
-            this.axesD[0].removeElements( p.min[0], p.max[0] );
-            this.axesD[1].removeElements( p.min[1], p.max[1] );
-            this.axesD[2].removeElements( p.min[2], p.max[2] );
+            this.axesD[0].removeElements( p.min.e0, p.max.e0 );
+            this.axesD[1].removeElements( p.min.e1, p.max.e1 );
+            this.axesD[2].removeElements( p.min.e2, p.max.e2 );
             this.numElementsD -= 2;
             break;
             case 2:
-            this.axesS[0].removeElements( p.min[0], p.max[0] );
-            this.axesS[1].removeElements( p.min[1], p.max[1] );
-            this.axesS[2].removeElements( p.min[2], p.max[2] );
+            this.axesS[0].removeElements( p.min.e0, p.max.e0 );
+            this.axesS[1].removeElements( p.min.e1, p.max.e1 );
+            this.axesS[2].removeElements( p.min.e2, p.max.e2 );
             this.numElementsS -= 2;
             break;
         }
@@ -6932,13 +7123,13 @@ SAPBroadPhase.prototype = Object.assign( Object.create( BroadPhase.prototype ), 
         if( count1 <= count2 ){// select the best axis
             axis2 = this.axesS[this.index1];
             axis2.sort();
-            elementsD = axis1.elements;
-            elementsS = axis2.elements;
+            elementsD = axis1.sap_elements;
+            elementsS = axis2.sap_elements;
         }else{
             axis1 = this.axesS[this.index2];
             axis1.sort();
-            elementsD = axis2.elements;
-            elementsS = axis1.elements;
+            elementsD = axis2.sap_elements;
+            elementsS = axis1.sap_elements;
             this.index1 ^= this.index2;
             this.index2 ^= this.index1;
             this.index1 ^= this.index2;
@@ -7574,9 +7765,12 @@ Object.assign( CollisionDetector.prototype, {
 function BoxBoxCollisionDetector() {
 
     CollisionDetector.call( this );
-    this.clipVertices1 = new Float32Array( 24 ); // 8 vertices x,y,z
-    this.clipVertices2 = new Float32Array( 24 );
-    this.used = new Float32Array( 8 );
+    this.clipVertices1 = [];//new Float32Array( 24 ); // 8 vertices x,y,z
+    for( var n = 0; n < 24; n++ ) this.clipVertices1.push(0);
+    this.clipVertices2 = [];//new Float32Array( 24 );
+    for( var n = 0; n < 24; n++ ) this.clipVertices2.push(0);
+    this.used = [];//new Float32Array( 8 );
+    for( var n = 0; n < 8; n++ ) this.used.push(0);
     
     this.INF = 1/0;
 
@@ -7623,8 +7817,8 @@ BoxBoxCollisionDetector.prototype = Object.assign( Object.create( CollisionDetec
             b1=(shape2);
             b2=(shape1);
         }
-        var V1 = b1.elements;
-        var V2 = b2.elements;
+        var V1 = b1.box_elements;
+        var V2 = b2.box_elements;
 
         var D1 = b1.dimentions;
         var D2 = b2.dimentions;
@@ -9267,9 +9461,9 @@ BoxCylinderCollisionDetector.prototype = Object.assign( Object.create( Collision
     supportPointB: function( c, dx, dy, dz, out ) {
 
         var rot=c.rotation.elements;
-        var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
-        var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
-        var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
+        var ldx=rot.e0*dx+rot.e3*dy+rot.e6*dz;
+        var ldy=rot.e1*dx+rot.e4*dy+rot.e7*dz;
+        var ldz=rot.e2*dx+rot.e5*dy+rot.e8*dz;
         var w=c.halfWidth;
         var h=c.halfHeight;
         var d=c.halfDepth;
@@ -9282,9 +9476,9 @@ BoxCylinderCollisionDetector.prototype = Object.assign( Object.create( Collision
         else oy=h;
         if(ldz<0)oz=-d;
         else oz=d;
-        ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
-        ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
-        ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
+        ldx=rot.e0*ox+rot.e1*oy+rot.e2*oz+c.position.x;
+        ldy=rot.e3*ox+rot.e4*oy+rot.e5*oz+c.position.y;
+        ldz=rot.e6*ox+rot.e7*oy+rot.e8*oz+c.position.z;
         out.set( ldx, ldy, ldz );
 
     },
@@ -9292,9 +9486,9 @@ BoxCylinderCollisionDetector.prototype = Object.assign( Object.create( Collision
     supportPointC: function ( c, dx, dy, dz, out ) {
 
         var rot=c.rotation.elements;
-        var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
-        var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
-        var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
+        var ldx=rot.e0*dx+rot.e3*dy+rot.e6*dz;
+        var ldy=rot.e1*dx+rot.e4*dy+rot.e7*dz;
+        var ldz=rot.e2*dx+rot.e5*dy+rot.e8*dz;
         var radx=ldx;
         var radz=ldz;
         var len=radx*radx+radz*radz;
@@ -9325,9 +9519,9 @@ BoxCylinderCollisionDetector.prototype = Object.assign( Object.create( Collision
         oz=radz*len;
         }
         }
-        ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
-        ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
-        ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
+        ldx=rot.e0*ox+rot.e1*oy+rot.e2*oz+c.position.x;
+        ldy=rot.e3*ox+rot.e4*oy+rot.e5*oz+c.position.y;
+        ldz=rot.e6*ox+rot.e7*oy+rot.e8*oz+c.position.z;
         out.set( ldx, ldy, ldz );
 
     },
@@ -9534,7 +9728,7 @@ BoxCylinderCollisionDetector.prototype = Object.assign( Object.create( Collision
         dot=-dot1;
         state=5;
         }
-        var v = b.elements;
+        var v = b.box_elements;
         switch(state){
         case 0:
         //v=b.vertex1;
@@ -10302,9 +10496,9 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
     supportPoint: function ( c, dx, dy, dz, out ) {
 
         var rot=c.rotation.elements;
-        var ldx=rot[0]*dx+rot[3]*dy+rot[6]*dz;
-        var ldy=rot[1]*dx+rot[4]*dy+rot[7]*dz;
-        var ldz=rot[2]*dx+rot[5]*dy+rot[8]*dz;
+        var ldx=rot.e0*dx+rot.e3*dy+rot.e6*dz;
+        var ldy=rot.e1*dx+rot.e4*dy+rot.e7*dz;
+        var ldz=rot.e2*dx+rot.e5*dy+rot.e8*dz;
         var radx=ldx;
         var radz=ldz;
         var len=radx*radx+radz*radz;
@@ -10335,9 +10529,9 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
         oz=radz*len;
         }
         }
-        ldx=rot[0]*ox+rot[1]*oy+rot[2]*oz+c.position.x;
-        ldy=rot[3]*ox+rot[4]*oy+rot[5]*oz+c.position.y;
-        ldz=rot[6]*ox+rot[7]*oy+rot[8]*oz+c.position.z;
+        ldx=rot.e0*ox+rot.e1*oy+rot.e2*oz+c.position.x;
+        ldy=rot.e3*ox+rot.e4*oy+rot.e5*oz+c.position.y;
+        ldz=rot.e6*ox+rot.e7*oy+rot.e8*oz+c.position.z;
         out.set( ldx, ldy, ldz );
 
     },
@@ -10816,7 +11010,6 @@ CylinderCylinderCollisionDetector.prototype = Object.assign( Object.create( Coll
  * @author saharan
  */
 function SphereBoxCollisionDetector ( flip ) {
-    
     CollisionDetector.call( this );
     this.flip = flip;
 
@@ -11696,7 +11889,10 @@ Object.assign( World.prototype, {
     callSleep: function( body ) {
 
         if( !body.allowSleep ) return false;
-        if( body.linearVelocity.lengthSq() > 0.04 ) return false;
+        var tmp = Vec3.clone( body.continuousLinearVelocity );
+        tmp.addEqual( body.linearVelocity );
+        if( tmp.lengthSq() > 0.04 ) return false;
+        tmp.delete();
         if( body.angularVelocity.lengthSq() > 0.25 ) return false;
         return true;
 
@@ -11716,7 +11912,12 @@ Object.assign( World.prototype, {
         while( body !== null ){
 
             body.addedToIsland = false;
-
+            body.initialLinearVelocity.copy( body.continuousLinearVelocity );
+            if( !body.sleeping ) {
+	            body.continuousLinearVelocity.addScaledVector( this.gravity, delta );
+	            //body.continuousLinearVelocity.addScaledVector( body.thrustForce, delta );
+            }
+            body.initialAngularVelocity.copy( body.continuousAngularVelocity );
             if( body.sleeping ) body.testWakeUp();
 
             body = body.next;
@@ -11838,7 +12039,7 @@ Object.assign( World.prototype, {
 
             if( base.isLonely() ){// update single body
                 if( base.isDynamic ){
-                    base.linearVelocity.addScaledVector( this.gravity, delta );
+                    //base.continuousLinearVelocity.addScaledVector( this.gravity, delta );
                     /*base.linearVelocity.x+=this.gravity.x*this.timeStep;
                     base.linearVelocity.y+=this.gravity.y*this.timeStep;
                     base.linearVelocity.z+=this.gravity.z*this.timeStep;*/
@@ -11907,7 +12108,7 @@ Object.assign( World.prototype, {
             } while( stackCount != 0 );
 
             // update velocities
-            var gVel = new Vec3().addScaledVector( this.gravity, delta );
+            //var gVel = Vec3.cloneScale( this.gravity, delta );
             /*var gx=this.gravity.x*this.timeStep;
             var gy=this.gravity.y*this.timeStep;
             var gz=this.gravity.z*this.timeStep;*/
@@ -11916,12 +12117,14 @@ Object.assign( World.prototype, {
             //or(var j=0, l=islandNumRigidBodies; j<l; j++){
                 body = this.islandRigidBodies[j];
                 if(body.isDynamic){
-                    body.linearVelocity.addEqual(gVel);
+                    //body.linearVelocity.addEqual(gVel);
+                    //base.continuousLinearVelocity.addScaledVector( this.gravity, delta );
                     /*body.linearVelocity.x+=gx;
                     body.linearVelocity.y+=gy;
                     body.linearVelocity.z+=gz;*/
                 }
             }
+            //gvel.delete();
 
             // randomizing order
             if(this.enableRandomizer){
@@ -12183,7 +12386,10 @@ Object.assign( World.prototype, {
             max = o.max || 10;
             min = min * invScale;
             max = max * invScale;
-        }else{
+        }else if( type === "jointSlider" ){
+            min = o.min || -10;
+            max = o.max || 10;
+	}else{
             min = o.min || 57.29578;
             max = o.max || 0;
             min = min * _Math.degtorad;
@@ -12233,7 +12439,11 @@ Object.assign( World.prototype, {
                 if(motor !== null) joint.limitMotor.setMotor( motor[0], motor[1] );
             break;
             case "jointPrisme": joint = new PrismaticJoint(jc, min, max); break;
-            case "jointSlide": joint = new SliderJoint(jc, min, max); break;
+            case "jointSlide": 
+		joint = new SliderJoint(jc, min, max); 
+                if(spring !== null) joint.translationalLimitMotor.setSpring( spring[0], spring[1] );// soften the joint ex: 100, 0.2
+                if(motor !== null) joint.translationalLimitMotor.setMotor( motor[0], motor[1] );
+		break;
             case "jointBall": joint = new BallAndSocketJoint(jc); break;
             case "jointWheel": joint = new WheelJoint(jc);
                 if(limit !== null) joint.rotationalLimitMotor1.setLimit( limit[0], limit[1] );
