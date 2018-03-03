@@ -7,7 +7,8 @@ import { _Math } from '../math/Math';
 import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';
 import { Vec3 } from '../math/Vec3';
-
+import { Cylinder } from '../shape/Cylinder';
+import { ShapeConfig } from '../shape/ShapeConfig';
 import { Contact } from '../constraint/contact/Contact';
 
 
@@ -67,6 +68,8 @@ function RigidBody ( Position, Rotation ) {
     this.initialAngularVelocity = new Vec3();
     this.continuousAngularVelocity = new Vec3();
     this.angularVelocity = new Vec3();
+
+    this.ccdShape = new Cylinder( new ShapeConfig(), 1, 1 )
 
     //--------------------------------------------
     //  Please do not change from the outside this variables.
@@ -388,8 +391,8 @@ Object.assign( RigidBody.prototype, {
                 this.position.addAveragedScaledVector(this.continuousLinearVelocity, this.initialLinearVelocity, timeStep);
                 this.orientation.addTime(this.angularVelocity, timeStep);
                 this.orientation.addAveragedTime(this.continuousAngularVelocity, this.initialAngularVelocity, timeStep);
-		if( this.position.y < 0 )
-			debugger;
+//		if( this.position.y < 0 )
+//			debugger;
                 this.updateMesh();
 
             break;
@@ -428,7 +431,11 @@ Object.assign( RigidBody.prototype, {
         }
     },
 
-
+    updateCCD( delta ) {
+        this.ccdShape.position.copy( this.position ).addScaledVector( this.continuousLinearVelocity, this.ccdShape.halfHeight = delta/2 );;
+        this.ccdShape.normalDirection.copy( this.continuousAngularVelocity );
+        this.ccdShape.radius = this.aabb.radius;
+    },
     //---------------------------------------------
     // APPLY IMPULSE FORCE
     //---------------------------------------------
@@ -441,11 +448,21 @@ Object.assign( RigidBody.prototype, {
     },
 
     applyForce: function(position, force){
-        this.continuousLinearVelocity.addScaledVector(force, this.inverseMass);
-        var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
+        var dot = new Vec3().copy( position ).dot( force );
+        var rdot = Math.sqrt(1-dot*dot);
+        //maximum scaling is dot == -1 (position 0,1,0 force 0,-1,0 )
+        var rel = new Vec3().copy( position ).cross( force );
+        
+        rel.applyMatrix3( this.inverseInertia, true );
+        this.continuousLinearVelocity.addScaledVector(force * -dot, this.inverseMass);
         this.continousAngularVelocity.add( rel );
     },
 
+    applyWorldForce: function(position, force){
+        var tmp;
+        this.applyForce( position, tmp = new Vec3().clone( position ).sub( this.position ) );
+        tmp.delete();
+    },
 
     //---------------------------------------------
     // SET DYNAMIQUE POSITION AND ROTATION
@@ -539,6 +556,14 @@ Object.assign( RigidBody.prototype, {
         this.mesh.quaternion.copy( this.getQuaternion() );
 
     },
+    events : {},
+    on( event, data ) {
+        if( typeof data === "function" ) 
+            return this.events[event] = data;
+        if( event in this.events ) 
+            this.events[event](this, data);
+
+    }
 
 } );
 

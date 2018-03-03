@@ -1,5 +1,6 @@
 import { SHAPE_TETRA, AABB_PROX } from '../constants';
 import { Shape } from './Shape';
+import { Vec3 } from '../math/Vec3';
 
 /**
  * A tetra shape.
@@ -42,6 +43,7 @@ Tetra.prototype.updateProxy = function () {
 
     this.aabb.setFromPoints(this.verts);
     this.aabb.expandByScalar(AABB_PROX);
+    this.aabb.radius += new Vec3().copy( this.aabb.center ).sub( this.position ).length();
 
     if(this.proxy !== null) this.proxy.update();
 

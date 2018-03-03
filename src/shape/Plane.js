@@ -50,7 +50,7 @@ Plane.prototype = Object.assign( Object.create( Shape.prototype ), {
             n.y === -1 ? this.position.y - p : min, n.y === 1 ? this.position.y + p : max,
             n.z === -1 ? this.position.z - p : min, n.z === 1 ? this.position.z + p : max
         );
-
+        this.aabb.radius = 0;
         if ( this.proxy != null ) this.proxy.update();
 
     }

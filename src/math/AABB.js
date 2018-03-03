@@ -1,4 +1,5 @@
 import { _Math } from './Math';
+import { Vec3 } from './Vec3';
 
 
 /**
@@ -9,7 +10,8 @@ import { _Math } from './Math';
  */
 
 function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
-
+	this.center = new Vec3();
+	this.radius = 0;
     this.aabb_elements = { e0:0,e1:0,e2:0,e3:0,e4:0,e6:0}// new Float32Array( 6 );
     var te = this.aabb_elements;
 
@@ -31,6 +33,17 @@ Object.assign( AABB.prototype, {
 		te.e4 = maxY;
 		te.e2 = minZ;
 		te.e5 = maxZ;
+		var x = (maxX + minX)/2, y = ( maxY + minY)/2, z =( maxZ + minZ)/2;
+		var hx = maxX - x, hy = maxY= y, hz = maxZ - z;
+		this.center.set( x, y, z );
+		
+		if( hx < hy ) {
+			hx = hy; x = y;
+		}
+		if( hx < hz ) {
+			hx = hz; x = z;
+		}
+		this.radius = hx;
 		return this;
 	},
 
@@ -127,6 +140,19 @@ Object.assign( AABB.prototype, {
 		for(var i = 0; i < arr.length; i++){
 			this.expandByPoint(arr[i]);
 		}
+		
+		var te = this.aabb_elements;
+		var x = (te.e3 + te.e0)/2, y = ( te.e4 + te.e1)/2, z =( te.e5 + te.e2)/2;
+		var hx = maxX - x, hy = maxY= y, hz = maxZ - z;
+		this.center.set( x, y, z );
+		
+		if( hx < hy ) {
+			hx = hy; x = y;
+		}
+		if( hx < hz ) {
+			hx = hz; x = z;
+		}
+		this.radius = hx;
 	},
 
 	makeEmpty: function(){

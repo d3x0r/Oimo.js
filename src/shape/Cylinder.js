@@ -79,7 +79,8 @@ Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
             this.position.y - h - p, this.position.y + h + p,
             this.position.z - d - p, this.position.z + d + p
         );
-
+        this.aabb.radius += new Vec3().copy( this.aabb.center ).sub( this.position ).length();
+        
         if ( this.proxy != null ) this.proxy.update();
 
     }

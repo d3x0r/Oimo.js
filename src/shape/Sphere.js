@@ -1,6 +1,7 @@
 import { SHAPE_SPHERE, AABB_PROX } from '../constants';
 import { Shape } from './Shape';
 import { _Math } from '../math/Math';
+import { Vec3 } from '../math/Vec3';
 
 /**
  * Sphere shape
@@ -47,6 +48,7 @@ Sphere.prototype = Object.assign( Object.create( Shape.prototype ), {
 			this.position.y - this.radius - p, this.position.y + this.radius + p,
 			this.position.z - this.radius - p, this.position.z + this.radius + p
 		);
+        this.aabb.radius += new Vec3().copy( this.aabb.center ).sub( this.position ).length();
 
 		if ( this.proxy != null ) this.proxy.update();
 

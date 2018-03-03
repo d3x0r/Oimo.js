@@ -439,10 +439,10 @@ Object.assign( World.prototype, {
     /**
     * I will proceed only time step seconds time of World.
     */
-    step: function ( delta ) {
+    step( delta ) {
 
         var stat = this.isStat;
-	if( !delta ) delta = this.timeStep;
+	    if( !delta ) delta = this.timeStep;
         if( stat ) this.performance.setTime( 0 );
 
         var body = this.rigidBodies;
@@ -450,12 +450,15 @@ Object.assign( World.prototype, {
         while( body !== null ){
 
             body.addedToIsland = false;
+
             body.initialLinearVelocity.copy( body.continuousLinearVelocity );
+            body.initialAngularVelocity.copy( body.continuousAngularVelocity );
+            
             if( !body.sleeping ) {
-	            body.continuousLinearVelocity.addScaledVector( this.gravity, delta );
+                body.continuousLinearVelocity.addScaledVector( this.gravity, delta );
+                body.on( "step", delta );
 	            //body.continuousLinearVelocity.addScaledVector( body.thrustForce, delta );
             }
-            body.initialAngularVelocity.copy( body.continuousAngularVelocity );
             if( body.sleeping ) body.testWakeUp();
 
             body = body.next;

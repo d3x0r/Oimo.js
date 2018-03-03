@@ -4,7 +4,7 @@ export default {
 	targets: [
 		{
 			format: 'umd',
-			moduleName: 'OIMO',
+			name: 'OIMO',
 			dest: 'build/oimo.js'
 		},
 		{
