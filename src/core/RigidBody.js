@@ -69,8 +69,6 @@ function RigidBody ( Position, Rotation ) {
     this.continuousAngularVelocity = new Vec3();
     this.angularVelocity = new Vec3();
 
-    this.ccdShape = new Cylinder( new ShapeConfig(), 1, 1 )
-
     //--------------------------------------------
     //  Please do not change from the outside this variables.
     //--------------------------------------------
@@ -411,7 +409,6 @@ Object.assign( RigidBody.prototype, {
     },
 
     rotateInertia: function ( rot, inertia, out ) {
-
         this.tmpInertia.multiplyMatrices( rot, inertia );
         out.multiplyMatrices( this.tmpInertia, rot, true );
 
@@ -432,9 +429,8 @@ Object.assign( RigidBody.prototype, {
     },
 
     updateCCD( delta ) {
-        this.ccdShape.position.copy( this.position ).addScaledVector( this.continuousLinearVelocity, this.ccdShape.halfHeight = delta/2 );;
-        this.ccdShape.normalDirection.copy( this.continuousAngularVelocity );
-        this.ccdShape.radius = this.aabb.radius;
+        for(var shape = this.shapes; shape!=null; shape = shape.next)
+            shape.aabb.updateCCD( this, delta )
     },
     //---------------------------------------------
     // APPLY IMPULSE FORCE

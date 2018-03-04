@@ -453,16 +453,15 @@ Object.assign( World.prototype, {
 
             body.initialLinearVelocity.copy( body.continuousLinearVelocity );
             body.initialAngularVelocity.copy( body.continuousAngularVelocity );
-            
+
             if( !body.sleeping ) {
                 body.continuousLinearVelocity.addScaledVector( this.gravity, delta );
                 body.on( "step", delta );
 	            //body.continuousLinearVelocity.addScaledVector( body.thrustForce, delta );
             }
             if( body.sleeping ) body.testWakeUp();
-
+            else body.updateCCD( delta );
             body = body.next;
-
         }
 
 

@@ -1,7 +1,9 @@
 import { _Math } from './Math';
 import { Vec3 } from './Vec3';
-
-
+import {ContactManifold} from '../constraint/contact/ContactManifold';
+import {CylinderCylinderCollisionDetector} from '../collision/narrowphase/CylinderCylinderCollisionDetector'
+import {Cylinder} from '../shape/Cylinder'
+import {ShapeConfig} from '../shape/ShapeConfig'
 /**
  * An axis-aligned bounding box.
  *
@@ -9,16 +11,29 @@ import { Vec3 } from './Vec3';
  * @author lo-th
  */
 
+ var makingCCD = false;
 function AABB( minX, maxX, minY, maxY, minZ, maxZ ){
+	if( makingCCD )
+		return;
 	this.center = new Vec3();
 	this.radius = 0;
+	makingCCD = true;
+	this.ccdShape = new Cylinder( new ShapeConfig(), 1, 1 );
+	makingCCD = false;
+	
     this.aabb_elements = { e0:0,e1:0,e2:0,e3:0,e4:0,e6:0}// new Float32Array( 6 );
     var te = this.aabb_elements;
+
 
     te.e0 = minX || 0; te.e1 = minY || 0; te.e2 = minZ || 0;
     te.e3 = maxX || 0; te.e4 = maxY || 0; te.e5 = maxZ || 0;
 
 };
+
+const ccdDetector = new CylinderCylinderCollisionDetector();
+const ccdManifold = new ContactManifold();
+
+
 
 Object.assign( AABB.prototype, {
 
@@ -34,7 +49,7 @@ Object.assign( AABB.prototype, {
 		te.e2 = minZ;
 		te.e5 = maxZ;
 		var x = (maxX + minX)/2, y = ( maxY + minY)/2, z =( maxZ + minZ)/2;
-		var hx = maxX - x, hy = maxY= y, hz = maxZ - z;
+		var hx = maxX - x, hy = maxY - y, hz = maxZ - z;
 		this.center.set( x, y, z );
 		
 		if( hx < hy ) {
@@ -48,12 +63,26 @@ Object.assign( AABB.prototype, {
 	},
 
 	intersectTest: function ( aabb ) {
-
+		ccdManifold.reset( this.ccdShape, aabb.ccdShape );
+		if( ccdDetector.detectCollision( this.ccdShape, aabb.ccdShape, ccdManifold ) || ccdManifold.numPoints) {
+			//console.log( "... cylinder collided... ", ccdManifold.numPoints)
+			return true;
+		}
 		var te = this.aabb_elements;
 		var ue = aabb.aabb_elements;
 		return te.e0 > ue.e3 || te.e1 > ue.e4 || te.e2 > ue.e5 || te.e3 < ue.e0 || te.e4 < ue.e1 || te.e5 < ue.e2 ? true : false;
 
 	},
+
+
+    updateCCD( body, delta ) {
+		this.ccdShape.parent = body;
+        this.ccdShape.position.copy( body.position ).addScaledVector( body.continuousLinearVelocity, this.ccdShape.halfHeight = delta/2 );;
+		this.ccdShape.normalDirection.copy( body.continuousLinearVelocity );
+		this.ccdShape.halfHeight = ( this.ccdShape.height = this.ccdShape.normalDirection.length() ) /2;
+		this.ccdShape.normalDirection.normalize();
+        this.ccdShape.radius = this.radius;
+    },
 
 	intersectTestTwo: function ( aabb ) {
 
