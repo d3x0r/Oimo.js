@@ -63,11 +63,13 @@ Object.assign( AABB.prototype, {
 	},
 
 	intersectTest: function ( aabb ) {
-		ccdManifold.reset( this.ccdShape, aabb.ccdShape );
-		if( ccdDetector.detectCollision( this.ccdShape, aabb.ccdShape, ccdManifold ) || ccdManifold.numPoints) {
-			//console.log( "... cylinder collided... ", ccdManifold.numPoints)
-			return true;
-		}
+		do {
+			ccdManifold.reset( this.ccdShape, aabb.ccdShape );
+			if( ccdDetector.detectCollision( this.ccdShape, aabb.ccdShape, ccdManifold ) || ccdManifold.numPoints) {
+				//console.log( "... cylinder collided... ", ccdManifold.numPoints)
+				return true;
+			}
+		} while( 1 );
 		var te = this.aabb_elements;
 		var ue = aabb.aabb_elements;
 		return te.e0 > ue.e3 || te.e1 > ue.e4 || te.e2 > ue.e5 || te.e3 < ue.e0 || te.e4 < ue.e1 || te.e5 < ue.e2 ? true : false;
@@ -79,8 +81,8 @@ Object.assign( AABB.prototype, {
 		this.ccdShape.parent = body;
         this.ccdShape.position.copy( body.position ).addScaledVector( body.continuousLinearVelocity, this.ccdShape.halfHeight = delta/2 );;
 		this.ccdShape.normalDirection.copy( body.continuousLinearVelocity );
-		this.ccdShape.halfHeight = ( this.ccdShape.height = this.ccdShape.normalDirection.length() ) /2;
-		this.ccdShape.normalDirection.normalize();
+		this.ccdShape.halfHeight = ( this.ccdShape.height = delta ) /2;
+		//this.ccdShape.normalDirection.normalize();
         this.ccdShape.radius = this.radius;
     },
 
@@ -172,7 +174,7 @@ Object.assign( AABB.prototype, {
 		
 		var te = this.aabb_elements;
 		var x = (te.e3 + te.e0)/2, y = ( te.e4 + te.e1)/2, z =( te.e5 + te.e2)/2;
-		var hx = maxX - x, hy = maxY= y, hz = maxZ - z;
+		var hx = maxX - x, hy = maxY - y, hz = maxZ - z;
 		this.center.set( x, y, z );
 		
 		if( hx < hy ) {
