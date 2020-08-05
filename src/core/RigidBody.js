@@ -218,10 +218,10 @@ Object.assign( RigidBody.prototype, {
         this.isStatic = this.type === BODY_STATIC;
 
         this.mass = 0;
-        this.localInertia.set(0,0,0,0,0,0,0,0,0);
+        this.localInertia.set(0,0,0);
 
 
-        var tmpM = new Mat33();
+        var tmpM = new lnQuat();
         var tmpV = new Vec3();
 
         for( var shape = this.shapes; shape !== null; shape = shape.next ){
@@ -230,6 +230,7 @@ Object.assign( RigidBody.prototype, {
             var shapeMass = this.massInfo.mass;
             tmpV.addScaledVector(shape.relativePosition, shapeMass);
             this.mass += shapeMass;
+            this.localInertia.add( shape.relativeRotation );
             this.rotateInertia( shape.relativeRotation, this.massInfo.inertia, tmpM );
             this.localInertia.add( tmpM );
 
@@ -252,13 +253,13 @@ Object.assign( RigidBody.prototype, {
 
         }
 
-        this.inverseLocalInertia.invert( this.localInertia );
+        //this.inverseLocalInertia.invert( this.localInertia );
 
         //}
 
         if( this.type === BODY_STATIC ){
             this.inverseMass = 0;
-            this.inverseLocalInertia.set(0,0,0,0,0,0,0,0,0);
+            this.localInertia.set(0,0,0);
         }
 
         this.syncShapes();
@@ -371,7 +372,7 @@ Object.assign( RigidBody.prototype, {
                 }
                 if(this.controlRot){
 
-                    this.angularVelocity.copy( this.getAxis() );
+                    this.angularVelocity.copy( this.localInertia.getAxis() );
                     this.orientation.copy( this.newOrientation );
                     this.controlRot = false;
 
@@ -392,13 +393,12 @@ Object.assign( RigidBody.prototype, {
     },
 
     getAxis: function () {
-
-        return new Vec3( 0,1,0 ).applyMatrix3( this.inverseLocalInertia, true ).normalize();
-
+        return this.inverseLocalInertia.axis();
     },
 
     rotateInertia: function ( rot, inertia, out ) {
-	rot.applyInto( inertia, tmpInertia ).applyInto( rot, out );
+	out.scale( rot, inertia ); // out = rot*inertia
+
         //this.tmpInertia.multiplyMatrices( rot, inertia );
         //out.multiplyMatrices( this.tmpInertia, rot, true );
 
@@ -407,13 +407,12 @@ Object.assign( RigidBody.prototype, {
     syncShapes: function () {
 	console.log( "Incomplete conversion here" );
         this.rotation.set( this.orientation );
-        this.rotateInertia( this.rotation, this.inverseLocalInertia, this.inverseInertia );
+        this.rotateInertia( this.rotation, this.localInertia, this.inverseInertia );
         
         for(var shape = this.shapes; shape!=null; shape = shape.next){
 
             shape.position.copy( shape.relativePosition ).applyMatrix3( this.rotation, true ).add( this.position );
-            // add by QuaziKb
-            shape.rotation.multiplyMatrices( this.rotation, shape.relativeRotation );
+            shape.rotation.add2( this.rotation, shape.relativeRotation );
             shape.updateProxy();
         }
     },
@@ -424,9 +423,16 @@ Object.assign( RigidBody.prototype, {
     //---------------------------------------------
 
     applyImpulse: function(position, force){
-        this.linearVelocity.addScaledVector(force, this.inverseMass);
-        var rel = this.inverseInertia.apply( new Vec3().copy( position ).sub( this.position ).cross( force ) );
-        this.angularVelocity.add( rel );
+
+	const forward = new Vec3().copy( position ).sub( this.position ).normalize();
+	const axis = new Vec3().copy(forward).cross( force );
+	const angAccel = axis.length();
+	forward.normalize();
+	forward.x *= force.x;
+	forward.y *= force.y;
+	forward.z *= force.z;
+        this.linearVelocity.addScaledVector( forward, this.inverseMass);
+        this.angularVelocity.addScaled( axis, this.inverseInertia );
     },
 
 

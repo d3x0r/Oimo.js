@@ -41,7 +41,7 @@ Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
 
     updateProxy: function () {
 
-        var te = this.rotation.elements;
+        var te = this.rotation.getBasis();//elements;
         var len, wx, hy, dz, xx, yy, zz, w, h, d, p;
 
         xx = te[1] * te[1];

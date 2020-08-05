@@ -1,5 +1,5 @@
 import { Vec3 } from '../math/Vec3';
-import { Mat33 } from '../math/Mat33';
+import { lnQuat } from '../math/lnQuat';
 
 /**
  * A shape configuration holds common configuration data for constructing a shape.
@@ -14,7 +14,7 @@ function ShapeConfig(){
     // position of the shape in parent's coordinate system.
     this.relativePosition = new Vec3();
     // rotation matrix of the shape in parent's coordinate system.
-    this.relativeRotation = new Mat33();
+    this.relativeRotation = new lnQuat();
     // coefficient of friction of the shape.
     this.friction = 0.2; // 0.4
     // coefficient of restitution of the shape.

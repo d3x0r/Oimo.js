@@ -2,7 +2,7 @@ import { SHAPE_NULL } from '../constants';
 import { printError } from '../core/Utils';
 import { _Math } from '../math/Math';
 import { Vec3 } from '../math/Vec3';
-import { Mat33 } from '../math/Mat33';
+import { lnQuat } from '../math/lnQuat';
 import { AABB } from '../math/AABB';
 
 var count = 0;
@@ -44,13 +44,13 @@ function Shape ( config ) {
     this.position = new Vec3();
 
     // rotation matrix of the shape in world coordinate system.
-    this.rotation = new Mat33();
+    this.rotation = new lnQuat();
 
     // position of the shape in parent's coordinate system.
     this.relativePosition = new Vec3().copy( config.relativePosition );
 
     // rotation matrix of the shape in parent's coordinate system.
-    this.relativeRotation = new Mat33().copy( config.relativeRotation );
+    this.relativeRotation = new lnQuat().copy( config.relativeRotation );
 
     // axis-aligned bounding box of the shape.
     this.aabb = new AABB();

@@ -368,6 +368,13 @@ lnQuat.prototype.spinDiff = function( q ) {
 lnQuat.prototype.addTime = lnQuat.prototype.add = function( q2, t ) {
 	return lnQuatAdd( this, q2, t||1 );
 }
+lnQuat.prototype.scale = function( q, q2 ) {
+	this.x = q.x * q2.x;
+	this.y = q.y * q2.y;
+	this.z = q.z * q2.z;
+	this.dirty = true; 
+	return this;
+}
 lnQuat.prototype.add2 = function( q2 ) {
 	return new lnQuat( 0, this.x, this.y, this.z ).add( q2 );
 }
@@ -711,6 +718,7 @@ lnQuat.prototype.getFrameFunctions2 = function( lnQvel ) {
 }
 
 
+// v and out can be the same object.
 lnQuat.prototype.applyInto = function( v, out ) {
 	//return this.applyDel( v, 1.0 );
 	if( v instanceof lnQuat ) {
@@ -745,6 +753,7 @@ lnQuat.prototype.applyInto = function( v, out ) {
 	} 
 }
 
+// v and out can be the same object.
 lnQuat.prototype.applyInverseInto = function( v, out ) {
 	//return this.applyDel( v, 1.0 );
 	if( v instanceof lnQuat ) {
@@ -1081,6 +1090,22 @@ function roll( C, th ) {
 	const az = 1 - c*( qx*qx + qy*qy );
 
 	return finishRodrigues( C, 0, ac, as, ax, ay, az );
+}
+
+lnQuat.prototype.addOffset = function(a,b) {
+	this.x += a.x*b.x;
+	this.y += a.y*b.y;
+	this.z += a.z*b.z;
+}
+
+lnQuat.prototype.subOffset = function(a,b) {
+	this.x -= a.x*b.x;
+	this.y -= a.y*b.y;
+	this.z -= a.z*b.z;
+}
+lnQuat.prototype.getAxis = function () {
+	this.update();
+	return { x: this.nx, y:this.ny, z:this.z }
 }
 
 function yaw( C, th ) {

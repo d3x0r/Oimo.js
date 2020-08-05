@@ -285,7 +285,7 @@ Object.assign( Vec3.prototype, {
     },*/
 
     applyMatrix3: function ( m, transpose ) {
-
+	return transpose?m.applyInverseInto( this, this ):m.applyInto( this, this );
         //if( transpose ) m = m.clone().transpose();
         var x = this.x, y = this.y, z = this.z;
         var e = m.elements;
@@ -308,6 +308,7 @@ Object.assign( Vec3.prototype, {
     },
 
     applyQuaternion: function ( q ) {
+	return q.applyInto( this, this );
 
         var x = this.x;
         var y = this.y;

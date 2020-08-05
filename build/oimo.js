@@ -704,53 +704,12 @@
 	    },*/
 
 	    applyMatrix3: function ( m, transpose ) {
-
-	        //if( transpose ) m = m.clone().transpose();
-	        var x = this.x, y = this.y, z = this.z;
-	        var e = m.elements;
-
-	        if( transpose ){
-	            
-	            this.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
-	            this.y = e[ 3 ] * x + e[ 4 ] * y + e[ 5 ] * z;
-	            this.z = e[ 6 ] * x + e[ 7 ] * y + e[ 8 ] * z;
-
-	        } else {
-	      
-	            this.x = e[ 0 ] * x + e[ 3 ] * y + e[ 6 ] * z;
-	            this.y = e[ 1 ] * x + e[ 4 ] * y + e[ 7 ] * z;
-	            this.z = e[ 2 ] * x + e[ 5 ] * y + e[ 8 ] * z;
-	        }
-
-	        return this;
+		return transpose?m.applyInverseInto( this, this ):m.applyInto( this, this );
 
 	    },
 
 	    applyQuaternion: function ( q ) {
-
-	        var x = this.x;
-	        var y = this.y;
-	        var z = this.z;
-
-	        var qx = q.x;
-	        var qy = q.y;
-	        var qz = q.z;
-	        var qw = q.w;
-
-	        // calculate quat * vector
-
-	        var ix =  qw * x + qy * z - qz * y;
-	        var iy =  qw * y + qz * x - qx * z;
-	        var iz =  qw * z + qx * y - qy * x;
-	        var iw = - qx * x - qy * y - qz * z;
-
-	        // calculate result * inverse quat
-
-	        this.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
-	        this.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
-	        this.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;
-
-	        return this;
+		return q.applyInto( this, this );
 
 	    },
 
@@ -848,6 +807,10 @@
 		const trunc = (x,y)=>x-mod(x,y);
 		return Math.acos(plusminus(x)) - trunc(x+1,2)*Math.PI/2;
 	}
+	// lnQuat( 1, {x:,y:,z:})
+	// lnQuat( theta,b,c,d );
+	// lnQuat( basis );
+	// lnQuat( {a:, b:, c:} );
 	function lnQuat( theta, d, a, b ){
 		this.w = 0; // unused, was angle of axis-angle, then was length of angles(nL)...
 		this.x = 0;  // these could become wrap counters....
@@ -895,6 +858,36 @@
 
 			}else {
 				if( "object" === typeof theta ) {
+					if( "w" in theta ) {
+						const q = theta; // set from a quaternion
+						const r = Math.sqrt(q.x*q.x+q.y*q.y+q.z*q.z+q.w*q.w);
+						if( ASSER )
+						{
+							if( Math.abs( 1.0 - r ) > 0.001 ) console.log( "Input quat was denormalized", l );
+						}
+						const qw = q.w / r;
+						const qx = q.x / r;
+						const qy = q.y / r;
+						const qz = q.z / r;
+						const ang = acos(qw)*2;
+						const s = Math.sin(ang/2);
+						if( !s ) {
+							const l = Math.sqrt(qx*qx + qy*qy + qz*qz );
+							if( l )
+								return new lnQuat( 0, qx/l, yt/l, zt/l ).update();	
+							else
+								return new lnQuat( 0, 0,1,0 ).update();	
+						}
+						const x = qx/s;
+						const y = qy/s;
+						const z = qz/s;
+		                                
+						const xt = x;
+						const yt = y;
+						const zt = z;
+						return new lnQuat( ang, xt, yt, zt ).update();
+						
+					}
 					if( "up" in theta ) {
 	// basis object {forward:,right:,up:}
 						return this.fromBasis( theta );
@@ -1019,6 +1012,45 @@
 		this.dirty = true;
 		return this;
 	};
+	lnQuat.prototype.copy = function(a) {
+		this.set( a );
+	};
+	lnQuat.prototype.set = function(a,b,c,d) {
+		if( a instanceof lnQuat ) {
+			this.x = a.x;
+			this.y = a.y;
+			this.z = a.z;
+			this.dirty = true;
+		}
+		if( "number" === typeof d ) {
+			this.dirty = true;
+			return setQuatToLogQuat( this, {x:a,y:b,z:d,w:d} );
+			
+		}
+		this.x = a;
+		this.y = b;
+		this.z = c;
+		this.dirty = true;
+		return this;
+	};
+	lnQuat.prototype.copy = function(q) {
+		this.x = q.x;
+		this.y = q.y;
+		this.z = q.z;
+		this.dirty = true;
+		return this;
+	};
+	lnQuat.prototype.addTime = function(q,t ) {
+		this.x += q.x * t;
+		this.y += q.y * t;
+		this.z += q.z * t;
+		this.dirty = true;
+		return this;
+	};
+	lnQuat.prototype.testDiff = function(q) {
+		return (this.x===q.x)&&(this.y===q.y)&&(this.z===q.z);
+	};
+
 
 	lnQuat.prototype.exp = function() {
 		this.update();
@@ -1033,8 +1065,15 @@
 		return abs(this.x - q.x) + abs(this.y - q.y) + abs(this.z - q.z);
 	};
 
-	lnQuat.prototype.add = function( q2, t ) {
+	lnQuat.prototype.addTime = lnQuat.prototype.add = function( q2, t ) {
 		return lnQuatAdd( this, q2, t||1 );
+	};
+	lnQuat.prototype.scale = function( q, q2 ) {
+		this.x = q.x * q2.x;
+		this.y = q.y * q2.y;
+		this.z = q.z * q2.z;
+		this.dirty = true; 
+		return this;
 	};
 	lnQuat.prototype.add2 = function( q2 ) {
 		return new lnQuat( 0, this.x, this.y, this.z ).add( q2 );
@@ -1318,6 +1357,77 @@
 	};
 
 
+	// v and out can be the same object.
+	lnQuat.prototype.applyInto = function( v, out ) {
+		//return this.applyDel( v, 1.0 );
+		if( v instanceof lnQuat ) {
+			const q = v;
+		        return finishRodriguesInto( out, q.update(), 0
+			                          , this.qw, this.s, this.nx, this.ny, this.nz );
+		}
+
+		const q = this;
+		this.update();
+		// 3+2 +sqrt+exp+sin
+	        if( !q.nL ) {
+			// v is unmodified.	
+			out.x=v.x; out.y=v.y; out.z=v.z; // 1.0
+			return out;
+		} else {
+			const nst = q.s; // normal * sin_theta
+			const qw = q.qw;  //Math.cos( pl );   quaternion q.w  = (exp(lnQ)) [ *exp(lnQ.W=0) ]
+
+			const qx = q.nx*nst;
+			const qy = q.ny*nst;
+			const qz = q.nz*nst;
+
+			//p� = (v*v.dot(p) + v.cross(p)*(w))*2 + p*(w*w � v.dot(v))
+			const tx = 2 * (qy * v.z - qz * v.y); // v.cross(p)*w*2
+			const ty = 2 * (qz * v.x - qx * v.z);
+			const tz = 2 * (qx * v.y - qy * v.x);
+			out.x = v.x + qw * tx + ( qy * tz - ty * qz );
+			out.y = v.y + qw * ty + ( qz * tx - tz * qx );
+			out.z = v.z + qw * tz + ( qx * ty - tx * qy );
+			return out;
+		} 
+	};
+
+	// v and out can be the same object.
+	lnQuat.prototype.applyInverseInto = function( v, out ) {
+		//return this.applyDel( v, 1.0 );
+		if( v instanceof lnQuat ) {
+			const q = v;
+		        return finishRodriguesInto( out, q.update(), 0
+			                          , this.qw, this.s, -this.nx, -this.ny, -this.nz );
+		}
+
+		const q = this;
+		this.update();
+		// 3+2 +sqrt+exp+sin
+	        if( !q.nL ) {
+			// v is unmodified.	
+			out.x=v.x; out.y=v.y; out.z=v.z; // 1.0
+			return out;
+		} else {
+			const nst = q.s; // normal * sin_theta
+			const qw = q.qw;  //Math.cos( pl );   quaternion q.w  = (exp(lnQ)) [ *exp(lnQ.W=0) ]
+
+			const qx = -q.nx*nst;
+			const qy = -q.ny*nst;
+			const qz = -q.nz*nst;
+
+			//p� = (v*v.dot(p) + v.cross(p)*(w))*2 + p*(w*w � v.dot(v))
+			const tx = 2 * (qy * v.z - qz * v.y); // v.cross(p)*w*2
+			const ty = 2 * (qz * v.x - qx * v.z);
+			const tz = 2 * (qx * v.y - qy * v.x);
+			out.x = v.x + qw * tx + ( qy * tz - ty * qz );
+			out.y = v.y + qw * ty + ( qz * tx - tz * qx );
+			out.z = v.z + qw * tz + ( qx * ty - tx * qy );
+			return out;
+		} 
+	};
+
+
 	// https://blog.molecular-matters.com/2013/05/24/a-faster-quaternion-vector-multiplication/
 	// 
 	lnQuat.prototype.apply = function( v ) {
@@ -1436,7 +1546,45 @@
 	};
 
 	// q= quaternion to rotate; oct = octive to result with; ac/as cos/sin(rotation) ax/ay/az (normalized axis of rotation)
-	function finishRodrigues( q, oct, ac, as, ax, ay, az, th ) {
+	function finishRodrigues( q, oct, ac, as, ax, ay, az ) {
+		// A dot B   = cos( angle A->B )
+		// cos( C/2 ) 
+		// this is also spherical cosines... cos(c)=cos(a)*cos(b)+sin(a)sin(b) cos(C)
+		// or this is also spherical cosines... -cos(C) = cos(A)*cos(B)-sin(A)sin(B) cos(c)
+		const sc1 = as * q.qw;
+		const sc2 = q.s * ac;
+		const ss = q.s * as;
+		const cc = q.qw * ac;
+		const cosCo2 = cc - ss* (q.nx*ax + q.ny*ay + q.nz*az);
+
+		const ang = acos( cosCo2 )*2 + ((oct|0)) * (Math.PI*4);
+
+		const Cx = sc1 * ax + sc2 * q.nx + ss*(ay*q.nz-az*q.ny);
+		const Cy = sc1 * ay + sc2 * q.ny + ss*(az*q.nx-ax*q.nz);
+		const Cz = sc1 * az + sc2 * q.nz + ss*(ax*q.ny-ay*q.nx);
+
+		const sAng = Math.sin(ang/2);
+		
+		const Clx = sAng*(Math.abs(Cx/sAng)+Math.abs(Cy/sAng)+Math.abs(Cz/sAng));
+
+		q.nL = ang/2;
+		q.nR = sAng/Clx*ang;
+		q.qw = cosCo2;
+		q.s = sAng;
+		q.nx = Cx/sAng;
+		q.ny = Cy/sAng;
+		q.nz = Cz/sAng;
+		
+		q.x = Cx/Clx*ang;
+		q.y = Cy/Clx*ang;
+		q.z = Cz/Clx*ang;
+
+		q.dirty = false;
+		return q;
+	}
+
+	// q= quaternion to rotate; oct = octive to result with; ac/as cos/sin(rotation) ax/ay/az (normalized axis of rotation)
+	function finishRodriguesInto( out, q, oct, ac, as, ax, ay, az ) {
 		// A dot B   = cos( angle A->B )
 		// cos( C/2 ) 
 		// this is also spherical cosines... cos(c)=cos(a)*cos(b)+sin(a)sin(b) cos(C)
@@ -1504,7 +1652,7 @@
 		const ay = ay_ + qw * ty + ( qz * tx - tz * qx );
 		const az = az_ + qw * tz + ( qx * ty - tx * qy );
 
-		return finishRodrigues( C, oct-4, ac, as, ax, ay, az);
+		return finishRodrigues( C, oct-4, ac, as, ax, ay, az );
 	};
 
 	lnQuat.prototype.freeSpin = function(th,axis){
@@ -1522,7 +1670,7 @@
 		const ay = ay_/aLen;
 		const az = az_/aLen;
 
-		return finishRodrigues( C, 0, ac, as, ax, ay, az);
+		return finishRodrigues( C, 0, ac, as, ax, ay, az );
 	};
 	lnQuat.prototype.twist = function(c){
 		return yaw( this, c );
@@ -1554,7 +1702,7 @@
 		const ax = 1 - c*( qy*qy + qz*qz );
 		const ay = ( s*qz    + c*qx*qy );
 		const az = ( c*qx*qz - s*qy );
-		return finishRodrigues( C, 0, ac, as, ax, ay, az);
+		return finishRodrigues( C, 0, ac, as, ax, ay, az );
 
 	}
 
@@ -1576,8 +1724,24 @@
 		const ay = ( c*qy*qz   - s*qx );
 		const az = 1 - c*( qx*qx + qy*qy );
 
-		return finishRodrigues( C, 0, ac, as, ax, ay, az);
+		return finishRodrigues( C, 0, ac, as, ax, ay, az );
 	}
+
+	lnQuat.prototype.addOffset = function(a,b) {
+		this.x += a.x*b.x;
+		this.y += a.y*b.y;
+		this.z += a.z*b.z;
+	};
+
+	lnQuat.prototype.subOffset = function(a,b) {
+		this.x -= a.x*b.x;
+		this.y -= a.y*b.y;
+		this.z -= a.z*b.z;
+	};
+	lnQuat.prototype.getAxis = function () {
+		this.update();
+		return { x: this.nx, y:this.ny, z:this.z }
+	};
 
 	function yaw( C, th ) {
 		// input angle...
@@ -1612,8 +1776,9 @@
 	};
 
 
-	lnQuat.fromQuat = quatToLogQuat;
-	function quatToLogQuat( q ) {
+	lnQuat.fromQuat = function(q) { return new lnQuat( q ) }; 
+
+	function setQuatToLogQuat( lq, q ) {
 
 		const r = Math.sqrt(q.x*q.x+q.y*q.y+q.z*q.z+q.w*q.w);
 		if( ASSER )
@@ -1633,14 +1798,10 @@
 			else
 				return new lnQuat( 0, 0,1,0 ).update();	
 		}
-		const x = qx/s;
-		const y = qy/s;
-		const z = qz/s;
-
-		const xt = x;
-		const yt = y;
-		const zt = z;
-		return new lnQuat( ang, xt, yt, zt ).update();
+		const x = qx*ang/s;
+		const y = qy*ang/s;
+		const z = qz*ang/s;
+		return lq.set( x, y, z );
 	}
 
 	function Quat ( x, y, z, w ){
@@ -2078,20 +2239,22 @@
 	        var tm1 = m1.elements;
 	        var tm2 = m2.elements;
 
-	        var a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
-	        var a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
-	        var a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
+	        const a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
+	        const a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
+	        const a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
 
-	        var b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
-	        var b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
-	        var b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
+	        const b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
+	        const b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
+	        const b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
 
 	        te[0] = a0*b0 + a1*b3 + a2*b6;
 	        te[1] = a0*b1 + a1*b4 + a2*b7;
 	        te[2] = a0*b2 + a1*b5 + a2*b8;
+
 	        te[3] = a3*b0 + a4*b3 + a5*b6;
 	        te[4] = a3*b1 + a4*b4 + a5*b7;
 	        te[5] = a3*b2 + a4*b5 + a5*b8;
+
 	        te[6] = a6*b0 + a7*b3 + a8*b6;
 	        te[7] = a6*b1 + a7*b4 + a8*b7;
 	        te[8] = a6*b2 + a7*b5 + a8*b8;
@@ -2566,13 +2729,13 @@
 	    this.position = new Vec3();
 
 	    // rotation matrix of the shape in world coordinate system.
-	    this.rotation = new Mat33();
+	    this.rotation = new lnQuat();
 
 	    // position of the shape in parent's coordinate system.
 	    this.relativePosition = new Vec3().copy( config.relativePosition );
 
 	    // rotation matrix of the shape in parent's coordinate system.
-	    this.relativeRotation = new Mat33().copy( config.relativeRotation );
+	    this.relativeRotation = new lnQuat().copy( config.relativeRotation );
 
 	    // axis-aligned bounding box of the shape.
 	    this.aabb = new AABB();
@@ -2648,42 +2811,41 @@
 			var mass = this.width * this.height * this.depth * this.density;
 			var divid = 1/12;
 			out.mass = mass;
-			out.inertia.set(
-				mass * ( this.height * this.height + this.depth * this.depth ) * divid, 0, 0,
-				0, mass * ( this.width * this.width + this.depth * this.depth ) * divid, 0,
-				0, 0, mass * ( this.width * this.width + this.height * this.height ) * divid
+			out.inertia.set( mass * ( this.height * this.height + this.depth * this.depth ) * divid, 
+				 mass * ( this.width * this.width + this.depth * this.depth ) * divid, 
+				 mass * ( this.width * this.width + this.height * this.height ) * divid
 			);
 
 		},
 
 		updateProxy: function () {
 
-			var te = this.rotation.elements;
+			var te = this.rotation.getBasis();//.elements;
 			var di = this.dimentions;
 			// Width
-			di[0] = te[0];
-			di[1] = te[3];
-			di[2] = te[6];
+			di[0] = te.right.x;
+			di[1] = te.right.y;
+			di[2] = te.right.z;
 			// Height
-			di[3] = te[1];
-			di[4] = te[4];
-			di[5] = te[7];
+			di[3] = te.up.x;
+			di[4] = te.up.y;
+			di[5] = te.up.z;
 			// Depth
-			di[6] = te[2];
-			di[7] = te[5];
-			di[8] = te[8];
+			di[6] = te.forward.x;
+			di[7] = te.forward.y;
+			di[8] = te.forward.z;
 			// half Width
-			di[9] = te[0] * this.halfWidth;
-			di[10] = te[3] * this.halfWidth;
-			di[11] = te[6] * this.halfWidth;
+			di[9]  = te.right.x * this.halfWidth;
+			di[10] = te.right.y * this.halfWidth;
+			di[11] = te.right.z * this.halfWidth;
 			// half Height
-			di[12] = te[1] * this.halfHeight;
-			di[13] = te[4] * this.halfHeight;
-			di[14] = te[7] * this.halfHeight;
+			di[12] = te.up.x * this.halfHeight;
+			di[13] = te.up.y * this.halfHeight;
+			di[14] = te.up.z * this.halfHeight;
 			// half Depth
-			di[15] = te[2] * this.halfDepth;
-			di[16] = te[5] * this.halfDepth;
-			di[17] = te[8] * this.halfDepth;
+			di[15] = te.forward.x * this.halfDepth;
+			di[16] = te.forward.y * this.halfDepth;
+			di[17] = te.forward.z * this.halfDepth;
 
 			var wx = di[9];
 			var wy = di[10];
@@ -2846,7 +3008,7 @@
 
 	    updateProxy: function () {
 
-	        var te = this.rotation.elements;
+	        var te = this.rotation.getBasis();//elements;
 	        var len, wx, hy, dz, xx, yy, zz, w, h, d, p;
 
 	        xx = te[1] * te[1];
@@ -3002,7 +3164,7 @@
 	    // position of the shape in parent's coordinate system.
 	    this.relativePosition = new Vec3();
 	    // rotation matrix of the shape in parent's coordinate system.
-	    this.relativeRotation = new Mat33();
+	    this.relativeRotation = new lnQuat();
 	    // coefficient of friction of the shape.
 	    this.friction = 0.2; // 0.4
 	    // coefficient of restitution of the shape.
@@ -6578,7 +6740,7 @@
 	function RigidBody ( Position, Rotation ) {
 
 	    this.position = Position || new Vec3();
-	    this.orientation = Rotation || new Quat();
+	    this.orientation = Rotation || new lnQuat();
 
 	    this.scale = 1;
 	    this.invScale = 1;
@@ -6604,13 +6766,13 @@
 
 	    this.newPosition = new Vec3();
 	    this.controlPos = false;
-	    this.newOrientation = new Quat();
+	    this.newOrientation = new lnQuat();
 	    this.newRotation = new Vec3();
 	    this.currentRotation = new Vec3();
 	    this.controlRot = false;
 	    this.controlRotInTime = false;
 
-	    this.quaternion = new Quat();
+	    this.quaternion = new lnQuat();
 	    this.pos = new Vec3();
 
 
@@ -6642,7 +6804,7 @@
 	    // It is the world coordinate of the center of gravity in the sleep just before.
 	    this.sleepPosition = new Vec3();
 	    // It is a quaternion that represents the attitude of sleep just before.
-	    this.sleepOrientation = new Quat();
+	    this.sleepOrientation = new lnQuat();
 	    // I will show this rigid body to determine whether it is a rigid body static.
 	    this.isStatic = false;
 	    // I indicates that this rigid body to determine whether it is a rigid body dynamic.
@@ -6651,7 +6813,7 @@
 	    this.isKinematic = false;
 
 	    // It is a rotation matrix representing the orientation.
-	    this.rotation = new Mat33();
+	    this.rotation = new lnQuat();
 
 	    //--------------------------------------------
 	    // It will be recalculated automatically from the shape, which is included.
@@ -6662,13 +6824,13 @@
 	    // It is the reciprocal of the mass.
 	    this.inverseMass = 0;
 	    // It is the inverse of the inertia tensor in the world system.
-	    this.inverseInertia = new Mat33();
+	    this.inverseInertia = new lnQuat();
 	    // It is the inertia tensor in the initial state.
-	    this.localInertia = new Mat33();
+	    this.localInertia = new lnQuat();
 	    // It is the inverse of the inertia tensor in the initial state.
-	    this.inverseLocalInertia = new Mat33();
+	    this.inverseLocalInertia = new lnQuat();
 
-	    this.tmpInertia = new Mat33();
+	    this.tmpInertia = new lnQuat();
 
 
 	    // I indicates rigid body whether it has been added to the simulation Island.
@@ -6773,10 +6935,10 @@
 	        this.isStatic = this.type === BODY_STATIC;
 
 	        this.mass = 0;
-	        this.localInertia.set(0,0,0,0,0,0,0,0,0);
+	        this.localInertia.set(0,0,0);
 
 
-	        var tmpM = new Mat33();
+	        var tmpM = new lnQuat();
 	        var tmpV = new Vec3();
 
 	        for( var shape = this.shapes; shape !== null; shape = shape.next ){
@@ -6785,6 +6947,7 @@
 	            var shapeMass = this.massInfo.mass;
 	            tmpV.addScaledVector(shape.relativePosition, shapeMass);
 	            this.mass += shapeMass;
+	            this.localInertia.add( shape.relativeRotation );
 	            this.rotateInertia( shape.relativeRotation, this.massInfo.inertia, tmpM );
 	            this.localInertia.add( tmpM );
 
@@ -6807,13 +6970,13 @@
 
 	        }
 
-	        this.inverseLocalInertia.invert( this.localInertia );
+	        //this.inverseLocalInertia.invert( this.localInertia );
 
 	        //}
 
 	        if( this.type === BODY_STATIC ){
 	            this.inverseMass = 0;
-	            this.inverseLocalInertia.set(0,0,0,0,0,0,0,0,0);
+	            this.localInertia.set(0,0,0);
 	        }
 
 	        this.syncShapes();
@@ -6926,7 +7089,7 @@
 	                }
 	                if(this.controlRot){
 
-	                    this.angularVelocity.copy( this.getAxis() );
+	                    this.angularVelocity.copy( this.localInertia.getAxis() );
 	                    this.orientation.copy( this.newOrientation );
 	                    this.controlRot = false;
 
@@ -6947,28 +7110,26 @@
 	    },
 
 	    getAxis: function () {
-
-	        return new Vec3( 0,1,0 ).applyMatrix3( this.inverseLocalInertia, true ).normalize();
-
+	        return this.inverseLocalInertia.axis();
 	    },
 
 	    rotateInertia: function ( rot, inertia, out ) {
+		out.scale( rot, inertia ); // out = rot*inertia
 
-	        this.tmpInertia.multiplyMatrices( rot, inertia );
-	        out.multiplyMatrices( this.tmpInertia, rot, true );
+	        //this.tmpInertia.multiplyMatrices( rot, inertia );
+	        //out.multiplyMatrices( this.tmpInertia, rot, true );
 
 	    },
 
 	    syncShapes: function () {
-
-	        this.rotation.setQuat( this.orientation );
-	        this.rotateInertia( this.rotation, this.inverseLocalInertia, this.inverseInertia );
+		console.log( "Incomplete conversion here" );
+	        this.rotation.set( this.orientation );
+	        this.rotateInertia( this.rotation, this.localInertia, this.inverseInertia );
 	        
 	        for(var shape = this.shapes; shape!=null; shape = shape.next){
 
 	            shape.position.copy( shape.relativePosition ).applyMatrix3( this.rotation, true ).add( this.position );
-	            // add by QuaziKb
-	            shape.rotation.multiplyMatrices( this.rotation, shape.relativeRotation );
+	            shape.rotation.add2( this.rotation, shape.relativeRotation );
 	            shape.updateProxy();
 	        }
 	    },
@@ -6979,9 +7140,16 @@
 	    //---------------------------------------------
 
 	    applyImpulse: function(position, force){
-	        this.linearVelocity.addScaledVector(force, this.inverseMass);
-	        var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
-	        this.angularVelocity.add( rel );
+
+		const forward = new Vec3().copy( position ).sub( this.position ).normalize();
+		const axis = new Vec3().copy(forward).cross( force );
+		const angAccel = axis.length();
+		forward.normalize();
+		forward.x *= force.x;
+		forward.y *= force.y;
+		forward.z *= force.z;
+	        this.linearVelocity.addScaledVector( forward, this.inverseMass);
+	        this.angularVelocity.addScaled( axis, this.inverseInertia );
 	    },
 
 
@@ -7003,7 +7171,7 @@
 
 	    setRotation: function ( rot ) {
 
-	        this.newOrientation = new Quat().setFromEuler( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.z * _Math.degtorad );//this.rotationVectToQuad( rot );
+	        this.newOrientation.set( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.z * _Math.degtorad );//this.rotationVectToQuad( rot );
 	        this.controlRot = true;
 
 	    },
@@ -7024,7 +7192,7 @@
 	    resetQuaternion:function( q ){
 
 	        this.angularVelocity.set(0,0,0);
-	        this.orientation = new Quat( q.x, q.y, q.z, q.w );
+	        this.orientation.set( q );
 	        this.awake();
 
 	    },
@@ -7032,7 +7200,7 @@
 	    resetRotation:function(x,y,z){
 
 	        this.angularVelocity.set(0,0,0);
-	        this.orientation = new Quat().setFromEuler( x * _Math.degtorad, y * _Math.degtorad,  z * _Math.degtorad );//this.rotationVectToQuad( new Vec3(x,y,z) );
+	        this.orientation.set( x * _Math.degtorad, y * _Math.degtorad,  z * _Math.degtorad );//this.rotationVectToQuad( new Vec3(x,y,z) );
 	        this.awake();
 
 	    },
@@ -12858,11 +13026,11 @@
 	            sc.relativeRotation = new Mat33().setQuat( q );//_Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
 	        }*/
 
-	        var position = new Vec3( p[0], p[1], p[2] );
-	        var rotation = new Quat().setFromEuler( r[0], r[1], r[2] );
+	        const position = new Vec3( p[0], p[1], p[2] );
+	        const rotation = new lnQuat( {a: r[0], b: r[1], c: r[2] } );
 
 	        // rigidbody
-	        var body = new RigidBody( position, rotation );
+	        const body = new RigidBody( position, rotation );
 	        //var body = new RigidBody( p[0], p[1], p[2], r[0], r[1], r[2], r[3], this.scale, this.invScale );
 
 	        // SHAPES
@@ -12874,7 +13042,7 @@
 	            n = i * 3;
 
 	            if( p2[n] !== undefined ) sc.relativePosition.set( p2[n], p2[n+1], p2[n+2] );
-	            if( r2[n] !== undefined ) sc.relativeRotation.setQuat( new Quat().setFromEuler( r2[n], r2[n+1], r2[n+2] ) );
+	            if( r2[n] !== undefined ) sc.relativeRotation.set( r2[n], r2[n+1], r2[n+2] );
 	            
 	            switch( type[i] ){
 	                case "sphere": shape = new Sphere( sc, s[n] ); break;

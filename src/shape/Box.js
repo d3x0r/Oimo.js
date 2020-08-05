@@ -37,42 +37,41 @@ Box.prototype = Object.assign( Object.create( Shape.prototype ), {
 		var mass = this.width * this.height * this.depth * this.density;
 		var divid = 1/12;
 		out.mass = mass;
-		out.inertia.set(
-			mass * ( this.height * this.height + this.depth * this.depth ) * divid, 0, 0,
-			0, mass * ( this.width * this.width + this.depth * this.depth ) * divid, 0,
-			0, 0, mass * ( this.width * this.width + this.height * this.height ) * divid
+		out.inertia.set( mass * ( this.height * this.height + this.depth * this.depth ) * divid, 
+			 mass * ( this.width * this.width + this.depth * this.depth ) * divid, 
+			 mass * ( this.width * this.width + this.height * this.height ) * divid
 		);
 
 	},
 
 	updateProxy: function () {
 
-		var te = this.rotation.elements;
+		var te = this.rotation.getBasis();//.elements;
 		var di = this.dimentions;
 		// Width
-		di[0] = te[0];
-		di[1] = te[3];
-		di[2] = te[6];
+		di[0] = te.right.x;
+		di[1] = te.right.y;
+		di[2] = te.right.z;
 		// Height
-		di[3] = te[1];
-		di[4] = te[4];
-		di[5] = te[7];
+		di[3] = te.up.x;
+		di[4] = te.up.y;
+		di[5] = te.up.z;
 		// Depth
-		di[6] = te[2];
-		di[7] = te[5];
-		di[8] = te[8];
+		di[6] = te.forward.x;
+		di[7] = te.forward.y;
+		di[8] = te.forward.z;
 		// half Width
-		di[9] = te[0] * this.halfWidth;
-		di[10] = te[3] * this.halfWidth;
-		di[11] = te[6] * this.halfWidth;
+		di[9]  = te.right.x * this.halfWidth;
+		di[10] = te.right.y * this.halfWidth;
+		di[11] = te.right.z * this.halfWidth;
 		// half Height
-		di[12] = te[1] * this.halfHeight;
-		di[13] = te[4] * this.halfHeight;
-		di[14] = te[7] * this.halfHeight;
+		di[12] = te.up.x * this.halfHeight;
+		di[13] = te.up.y * this.halfHeight;
+		di[14] = te.up.z * this.halfHeight;
 		// half Depth
-		di[15] = te[2] * this.halfDepth;
-		di[16] = te[5] * this.halfDepth;
-		di[17] = te[8] * this.halfDepth;
+		di[15] = te.forward.x * this.halfDepth;
+		di[16] = te.forward.y * this.halfDepth;
+		di[17] = te.forward.z * this.halfDepth;
 
 		var wx = di[9];
 		var wy = di[10];
