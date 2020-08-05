@@ -123,20 +123,22 @@ Object.assign( Mat33.prototype, {
         var tm1 = m1.elements;
         var tm2 = m2.elements;
 
-        var a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
-        var a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
-        var a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
+        const a0 = tm1[0], a3 = tm1[3], a6 = tm1[6];
+        const a1 = tm1[1], a4 = tm1[4], a7 = tm1[7];
+        const a2 = tm1[2], a5 = tm1[5], a8 = tm1[8];
 
-        var b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
-        var b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
-        var b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
+        const b0 = tm2[0], b3 = tm2[3], b6 = tm2[6];
+        const b1 = tm2[1], b4 = tm2[4], b7 = tm2[7];
+        const b2 = tm2[2], b5 = tm2[5], b8 = tm2[8];
 
         te[0] = a0*b0 + a1*b3 + a2*b6;
         te[1] = a0*b1 + a1*b4 + a2*b7;
         te[2] = a0*b2 + a1*b5 + a2*b8;
+
         te[3] = a3*b0 + a4*b3 + a5*b6;
         te[4] = a3*b1 + a4*b4 + a5*b7;
         te[5] = a3*b2 + a4*b5 + a5*b8;
+
         te[6] = a6*b0 + a7*b3 + a8*b6;
         te[7] = a6*b1 + a7*b4 + a8*b7;
         te[8] = a6*b2 + a7*b5 + a8*b8;

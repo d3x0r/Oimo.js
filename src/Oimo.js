@@ -7,6 +7,7 @@ export { _Math as Math } from './math/Math.js';
 export { Vec3 } from './math/Vec3.js';
 export { Quat } from './math/Quat.js';
 export { Mat33 } from './math/Mat33.js';
+export { lnQuat } from './math/lnQuat.js';
 
 /*
 // broadphase

@@ -1,6 +1,6 @@
 import { _Math } from './Math';
 import { Vec3 } from './Vec3';
-
+import { lnQuat} from './lnQuat';
 function Quat ( x, y, z, w ){
 
     this.x = x || 0;
@@ -39,7 +39,9 @@ Object.assign( Quat.prototype, {
         return this;
 
     },
-
+    log: function() {
+	return lnQuat.fromQuat( this );
+    },
     /*mul: function( q1, q2 ){
 
         var ax = q1.x, ay = q1.y, az = q1.z, as = q1.w,

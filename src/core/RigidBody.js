@@ -6,6 +6,7 @@ import { MassInfo } from '../shape/MassInfo';
 import { _Math } from '../math/Math';
 import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';
+import { lnQuat } from '../math/lnQuat';
 import { Vec3 } from '../math/Vec3';
 
 import { Contact } from '../constraint/contact/Contact';
@@ -22,7 +23,7 @@ import { Contact } from '../constraint/contact/Contact';
 function RigidBody ( Position, Rotation ) {
 
     this.position = Position || new Vec3();
-    this.orientation = Rotation || new Quat();
+    this.orientation = Rotation || new lnQuat();
 
     this.scale = 1;
     this.invScale = 1;
@@ -48,13 +49,13 @@ function RigidBody ( Position, Rotation ) {
 
     this.newPosition = new Vec3();
     this.controlPos = false;
-    this.newOrientation = new Quat();
+    this.newOrientation = new lnQuat();
     this.newRotation = new Vec3();
     this.currentRotation = new Vec3();
     this.controlRot = false;
     this.controlRotInTime = false;
 
-    this.quaternion = new Quat();
+    this.quaternion = new lnQuat();
     this.pos = new Vec3();
 
 
@@ -86,7 +87,7 @@ function RigidBody ( Position, Rotation ) {
     // It is the world coordinate of the center of gravity in the sleep just before.
     this.sleepPosition = new Vec3();
     // It is a quaternion that represents the attitude of sleep just before.
-    this.sleepOrientation = new Quat();
+    this.sleepOrientation = new lnQuat();
     // I will show this rigid body to determine whether it is a rigid body static.
     this.isStatic = false;
     // I indicates that this rigid body to determine whether it is a rigid body dynamic.
@@ -95,7 +96,7 @@ function RigidBody ( Position, Rotation ) {
     this.isKinematic = false;
 
     // It is a rotation matrix representing the orientation.
-    this.rotation = new Mat33();
+    this.rotation = new lnQuat();
 
     //--------------------------------------------
     // It will be recalculated automatically from the shape, which is included.
@@ -106,13 +107,13 @@ function RigidBody ( Position, Rotation ) {
     // It is the reciprocal of the mass.
     this.inverseMass = 0;
     // It is the inverse of the inertia tensor in the world system.
-    this.inverseInertia = new Mat33();
+    this.inverseInertia = new lnQuat();
     // It is the inertia tensor in the initial state.
-    this.localInertia = new Mat33();
+    this.localInertia = new lnQuat();
     // It is the inverse of the inertia tensor in the initial state.
-    this.inverseLocalInertia = new Mat33();
+    this.inverseLocalInertia = new lnQuat();
 
-    this.tmpInertia = new Mat33();
+    this.tmpInertia = new lnQuat();
 
 
     // I indicates rigid body whether it has been added to the simulation Island.
@@ -397,15 +398,15 @@ Object.assign( RigidBody.prototype, {
     },
 
     rotateInertia: function ( rot, inertia, out ) {
-
-        this.tmpInertia.multiplyMatrices( rot, inertia );
-        out.multiplyMatrices( this.tmpInertia, rot, true );
+	rot.applyInto( inertia, tmpInertia ).applyInto( rot, out );
+        //this.tmpInertia.multiplyMatrices( rot, inertia );
+        //out.multiplyMatrices( this.tmpInertia, rot, true );
 
     },
 
     syncShapes: function () {
-
-        this.rotation.setQuat( this.orientation );
+	console.log( "Incomplete conversion here" );
+        this.rotation.set( this.orientation );
         this.rotateInertia( this.rotation, this.inverseLocalInertia, this.inverseInertia );
         
         for(var shape = this.shapes; shape!=null; shape = shape.next){
@@ -424,7 +425,7 @@ Object.assign( RigidBody.prototype, {
 
     applyImpulse: function(position, force){
         this.linearVelocity.addScaledVector(force, this.inverseMass);
-        var rel = new Vec3().copy( position ).sub( this.position ).cross( force ).applyMatrix3( this.inverseInertia, true );
+        var rel = this.inverseInertia.apply( new Vec3().copy( position ).sub( this.position ).cross( force ) );
         this.angularVelocity.add( rel );
     },
 
@@ -447,7 +448,7 @@ Object.assign( RigidBody.prototype, {
 
     setRotation: function ( rot ) {
 
-        this.newOrientation = new Quat().setFromEuler( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.z * _Math.degtorad );//this.rotationVectToQuad( rot );
+        this.newOrientation.set( rot.x * _Math.degtorad, rot.y * _Math.degtorad, rot.z * _Math.degtorad );//this.rotationVectToQuad( rot );
         this.controlRot = true;
 
     },
@@ -468,7 +469,7 @@ Object.assign( RigidBody.prototype, {
     resetQuaternion:function( q ){
 
         this.angularVelocity.set(0,0,0);
-        this.orientation = new Quat( q.x, q.y, q.z, q.w );
+        this.orientation.set( q );
         this.awake();
 
     },
@@ -476,7 +477,7 @@ Object.assign( RigidBody.prototype, {
     resetRotation:function(x,y,z){
 
         this.angularVelocity.set(0,0,0);
-        this.orientation = new Quat().setFromEuler( x * _Math.degtorad, y * _Math.degtorad,  z * _Math.degtorad );//this.rotationVectToQuad( new Vec3(x,y,z) );
+        this.orientation.set( x * _Math.degtorad, y * _Math.degtorad,  z * _Math.degtorad );//this.rotationVectToQuad( new Vec3(x,y,z) );
         this.awake();
 
     },

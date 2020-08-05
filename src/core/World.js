@@ -18,6 +18,7 @@ import { BoxPlaneCollisionDetector } from '../collision/narrowphase/BoxPlaneColl
 import { _Math } from '../math/Math';
 import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';
+import { lnQuat } from '../math/lnQuat';
 import { Vec3 } from '../math/Vec3';
 
 import { ShapeConfig } from '../shape/ShapeConfig';
@@ -827,11 +828,11 @@ Object.assign( World.prototype, {
             sc.relativeRotation = new Mat33().setQuat( q );//_Math.EulerToMatrix( o.massRot[0], o.massRot[1], o.massRot[2] );
         }*/
 
-        var position = new Vec3( p[0], p[1], p[2] );
-        var rotation = new Quat().setFromEuler( r[0], r[1], r[2] );
+        const position = new Vec3( p[0], p[1], p[2] );
+        const rotation = new lnQuat( {a: r[0], b: r[1], c: r[2] } );
 
         // rigidbody
-        var body = new RigidBody( position, rotation );
+        const body = new RigidBody( position, rotation );
         //var body = new RigidBody( p[0], p[1], p[2], r[0], r[1], r[2], r[3], this.scale, this.invScale );
 
         // SHAPES
@@ -843,7 +844,7 @@ Object.assign( World.prototype, {
             n = i * 3;
 
             if( p2[n] !== undefined ) sc.relativePosition.set( p2[n], p2[n+1], p2[n+2] );
-            if( r2[n] !== undefined ) sc.relativeRotation.setQuat( new Quat().setFromEuler( r2[n], r2[n+1], r2[n+2] ) );
+            if( r2[n] !== undefined ) sc.relativeRotation.set( r2[n], r2[n+1], r2[n+2] );
             
             switch( type[i] ){
                 case "sphere": shape = new Sphere( sc, s[n] ); break;
