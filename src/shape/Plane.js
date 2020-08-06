@@ -33,7 +33,7 @@ Plane.prototype = Object.assign( Object.create( Shape.prototype ), {
 
         out.mass = this.density;//0.0001;
         var inertia = 1;
-        out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+        out.inertia.set( inertia, inertia, inertia );
 
     },
 

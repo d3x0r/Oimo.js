@@ -319,6 +319,7 @@ lnQuat.prototype.set = function(a,b,c,d) {
 		this.y = a.y;
 		this.z = a.z;
 		this.dirty = true;
+		return;
 	}
 	if( "number" === typeof d ) {
 		this.dirty = true;

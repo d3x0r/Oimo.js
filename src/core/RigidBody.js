@@ -4,7 +4,6 @@ import { printError } from './Utils';
 import { MassInfo } from '../shape/MassInfo';
 
 import { _Math } from '../math/Math';
-import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';
 import { lnQuat } from '../math/lnQuat';
 import { Vec3 } from '../math/Vec3';
@@ -405,7 +404,7 @@ Object.assign( RigidBody.prototype, {
     },
 
     syncShapes: function () {
-	console.log( "Incomplete conversion here" );
+	//console.log( "Incomplete conversion here" );
         this.rotation.set( this.orientation );
         this.rotateInertia( this.rotation, this.localInertia, this.inverseInertia );
         
@@ -500,7 +499,7 @@ Object.assign( RigidBody.prototype, {
 
     getQuaternion: function () {
 
-        return this.quaternion;
+        return this.quaternion.exp();
 
     },
 

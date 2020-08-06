@@ -35,7 +35,7 @@ Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
         var inertiaXZ = ( ( 0.25 * rsq ) + ( 0.0833 * this.height * this.height ) ) * mass;
         var inertiaY = 0.5 * rsq;
         out.mass = mass;
-        out.inertia.set( inertiaXZ, 0, 0,  0, inertiaY, 0,  0, 0, inertiaXZ );
+        out.inertia.set( inertiaXZ, inertiaY, inertiaXZ );
 
     },
 

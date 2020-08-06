@@ -16,7 +16,6 @@ import { SpherePlaneCollisionDetector } from '../collision/narrowphase/SpherePla
 import { BoxPlaneCollisionDetector } from '../collision/narrowphase/BoxPlaneCollisionDetector_X';
 
 import { _Math } from '../math/Math';
-import { Mat33 } from '../math/Mat33';
 import { Quat } from '../math/Quat';
 import { lnQuat } from '../math/lnQuat';
 import { Vec3 } from '../math/Vec3';

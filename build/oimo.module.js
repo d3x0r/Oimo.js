@@ -1015,6 +1015,7 @@ lnQuat.prototype.set = function(a,b,c,d) {
 		this.y = a.y;
 		this.z = a.z;
 		this.dirty = true;
+		return;
 	}
 	if( "number" === typeof d ) {
 		this.dirty = true;
@@ -2945,7 +2946,7 @@ Sphere.prototype = Object.assign( Object.create( Shape.prototype ), {
 		var mass = this.volume() * this.radius * this.radius * this.density; //1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
 		out.mass = mass;
 		var inertia = mass * this.radius * this.radius * 0.4;
-		out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+		out.inertia.set( inertia, inertia, inertia );
 
 	},
 
@@ -2996,7 +2997,7 @@ Cylinder.prototype = Object.assign( Object.create( Shape.prototype ), {
         var inertiaXZ = ( ( 0.25 * rsq ) + ( 0.0833 * this.height * this.height ) ) * mass;
         var inertiaY = 0.5 * rsq;
         out.mass = mass;
-        out.inertia.set( inertiaXZ, 0, 0,  0, inertiaY, 0,  0, 0, inertiaXZ );
+        out.inertia.set( inertiaXZ, inertiaY, inertiaXZ );
 
     },
 
@@ -3076,7 +3077,7 @@ Plane.prototype = Object.assign( Object.create( Shape.prototype ), {
 
         out.mass = this.density;//0.0001;
         var inertia = 1;
-        out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+        out.inertia.set( inertia, inertia, inertia );
 
     },
 
@@ -3125,7 +3126,7 @@ Particle.prototype = Object.assign( Object.create( Shape.prototype ), {
     calculateMassInfo: function ( out ) {
 
         var inertia = 0;
-        out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+        out.inertia.set( inertia, inertia, inertia );
 
     },
 
@@ -5907,7 +5908,7 @@ function MassInfo (){
     this.mass = 0;
 
     // The moment inertia of the shape.
-    this.inertia = new Mat33();
+    this.inertia = new lnQuat();
 
 }
 
@@ -7116,7 +7117,7 @@ Object.assign( RigidBody.prototype, {
     },
 
     syncShapes: function () {
-	console.log( "Incomplete conversion here" );
+	//console.log( "Incomplete conversion here" );
         this.rotation.set( this.orientation );
         this.rotateInertia( this.rotation, this.localInertia, this.inverseInertia );
         
@@ -7211,7 +7212,7 @@ Object.assign( RigidBody.prototype, {
 
     getQuaternion: function () {
 
-        return this.quaternion;
+        return this.quaternion.exp();
 
     },
 

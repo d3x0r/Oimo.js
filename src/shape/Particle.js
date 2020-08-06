@@ -29,7 +29,7 @@ Particle.prototype = Object.assign( Object.create( Shape.prototype ), {
     calculateMassInfo: function ( out ) {
 
         var inertia = 0;
-        out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+        out.inertia.set( inertia, inertia, inertia );
 
     },
 

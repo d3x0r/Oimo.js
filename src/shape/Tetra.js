@@ -31,9 +31,9 @@ Tetra.prototype.calculateMassInfo = function( out ){
     var divid = 1/12;
     out.mass = mass;
     out.inertia.set(
-        mass * ( 2*y*2*y + 2*z*2*z ) * divid, 0, 0,
-        0, mass * ( 2*x*2*x + 2*z*2*z ) * divid, 0,
-        0, 0, mass * ( 2*y*2*y + 2*x*2*x ) * divid
+        mass * ( 2*y*2*y + 2*z*2*z ) * divid,
+         mass * ( 2*x*2*x + 2*z*2*z ) * divid,
+         mass * ( 2*y*2*y + 2*x*2*x ) * divid
     );
 
 };

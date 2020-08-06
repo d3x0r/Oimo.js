@@ -1,4 +1,4 @@
-import { Mat33 } from '../math/Mat33';
+import { lnQuat } from '../math/lnQuat';
 
 /**
  * This class holds mass information of a shape.
@@ -12,7 +12,7 @@ function MassInfo (){
     this.mass = 0;
 
     // The moment inertia of the shape.
-    this.inertia = new Mat33();
+    this.inertia = new lnQuat();
 
 };
 

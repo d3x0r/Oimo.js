@@ -1021,6 +1021,7 @@
 			this.y = a.y;
 			this.z = a.z;
 			this.dirty = true;
+			return;
 		}
 		if( "number" === typeof d ) {
 			this.dirty = true;
@@ -2951,7 +2952,7 @@
 			var mass = this.volume() * this.radius * this.radius * this.density; //1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
 			out.mass = mass;
 			var inertia = mass * this.radius * this.radius * 0.4;
-			out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+			out.inertia.set( inertia, inertia, inertia );
 
 		},
 
@@ -3002,7 +3003,7 @@
 	        var inertiaXZ = ( ( 0.25 * rsq ) + ( 0.0833 * this.height * this.height ) ) * mass;
 	        var inertiaY = 0.5 * rsq;
 	        out.mass = mass;
-	        out.inertia.set( inertiaXZ, 0, 0,  0, inertiaY, 0,  0, 0, inertiaXZ );
+	        out.inertia.set( inertiaXZ, inertiaY, inertiaXZ );
 
 	    },
 
@@ -3082,7 +3083,7 @@
 
 	        out.mass = this.density;//0.0001;
 	        var inertia = 1;
-	        out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+	        out.inertia.set( inertia, inertia, inertia );
 
 	    },
 
@@ -3131,7 +3132,7 @@
 	    calculateMassInfo: function ( out ) {
 
 	        var inertia = 0;
-	        out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+	        out.inertia.set( inertia, inertia, inertia );
 
 	    },
 
@@ -5913,7 +5914,7 @@
 	    this.mass = 0;
 
 	    // The moment inertia of the shape.
-	    this.inertia = new Mat33();
+	    this.inertia = new lnQuat();
 
 	}
 
@@ -7122,7 +7123,7 @@
 	    },
 
 	    syncShapes: function () {
-		console.log( "Incomplete conversion here" );
+		//console.log( "Incomplete conversion here" );
 	        this.rotation.set( this.orientation );
 	        this.rotateInertia( this.rotation, this.localInertia, this.inverseInertia );
 	        
@@ -7217,7 +7218,7 @@
 
 	    getQuaternion: function () {
 
-	        return this.quaternion;
+	        return this.quaternion.exp();
 
 	    },
 

@@ -34,7 +34,7 @@ Sphere.prototype = Object.assign( Object.create( Shape.prototype ), {
 		var mass = this.volume() * this.radius * this.radius * this.density; //1.333 * _Math.PI * this.radius * this.radius * this.radius * this.density;
 		out.mass = mass;
 		var inertia = mass * this.radius * this.radius * 0.4;
-		out.inertia.set( inertia, 0, 0, 0, inertia, 0, 0, 0, inertia );
+		out.inertia.set( inertia, inertia, inertia );
 
 	},
 
